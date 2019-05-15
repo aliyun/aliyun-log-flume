@@ -1,4 +1,4 @@
-```Apache Flume``` is a open source project used for moving massive quantities of streaming data between different data sources like HDFS, Kakfa, Loghub. This project implemented Loghub Source for ingesting data from Loghub and Loghub Sink for collecting data from other source and publish to Loghub. 
+```Apache Flume``` is a open source project used for moving massive quantities of streaming data between different data source like HDFS, Kakfa, Loghub. This project implemented Loghub Source for ingesting data from Loghub and Loghub Sink for collecting data from other source and publish to Loghub. 
 
 ### Requirements
 - Java 1.8+
@@ -14,7 +14,7 @@ Copy the downloaded tarball in the directory of your server and extract contents
 
 ```tar -xvf apache-flume-1.9.0-bin.tar.gz```
  
-This command will create a new directory named apache-flume-1.9.0-bin and extract files into it. All official sinks/sources library are placed the the directory apache-flume-1.9.0-bin/lib. 
+This command will create a new directory named apache-flume-1.9.0-bin and extract files into it. All official sinks/sources library are placed under the the directory apache-flume-1.9.0-bin/lib. 
 
 #### Build 
 
