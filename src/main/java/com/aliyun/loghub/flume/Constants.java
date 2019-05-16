@@ -14,23 +14,25 @@ public class Constants {
     public static final String CONSUME_POSITION_END = "end";
     public static final String CONSUME_POSITION_TIMESTAMP = "timestamp";
     public static final String CONSUME_POSITION_START_TIME_KEY = "startTime";
-    public static final String HEARTBEAT_INTERVAL_KEY = "heartbeatInterval";
+    /**
+     * Consumer group heartbeat interval in millisecond.
+     */
+    public static final String HEARTBEAT_INTERVAL_MS = "heartbeatIntervalMs";
+    /**
+     * Fetch data interval in millisecond.
+     */
+    public static final String FETCH_INTERVAL_MS = "fetchIntervalMs";
+
     public static final String USER_RECORD_TIME_KEY = "useRecordTime";
     public static final boolean DEFAULT_USER_RECORD_TIME = false;
     public static final long DEFAULT_HEARTBEAT_INTERVAL_MS = 30000L;
+    public static final long DEFAULT_FETCH_INTERVAL_MS = 100L;
     public static final String FETCH_IN_ORDER_KEY = "fetchInOrder";
     public static final boolean DEFAULT_FETCH_IN_ORDER = false;
     public static final String BATCH_SIZE_KEY = "batchSize";
-    public static final String BATCH_DURATION_KEY = "batchDurationMillis";
     public static final int DEFAULT_BATCH_SIZE = 1000;
-    public static final long DEFAULT_BATCH_DURATION_MS = 1000L;
-    public static final String BACKOFF_SLEEP_INCREMENT_KEY = "backoffSleepIncrement";
-    public static final long DEFAULT_BACKOFF_SLEEP_INCREMENT = 1000;
-    public static final String MAX_BACKOFF_SLEEP_KEY = "maxBackoffSleep";
-    public static final long DEFAULT_MAX_BACKOFF_SLEEP = 5000;
 
     public static final String MAX_BUFFER_SIZE = "maxBufferSize";
-    public static final int DEFAULT_MAX_BUFFER_SIZE = 1024;
 
     public static final String FORMAT_KEY = "format";
     public static final String CSV_FORMAT = "csv";

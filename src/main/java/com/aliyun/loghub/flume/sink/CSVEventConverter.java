@@ -16,6 +16,7 @@ import static com.aliyun.loghub.flume.Constants.QUOTE_KEY;
 import static com.aliyun.loghub.flume.Constants.SEPARATOR_KEY;
 
 
+// DELIMITED
 public class CSVEventConverter implements Converter<Event, LogItem> {
     private static final Logger LOG = LoggerFactory.getLogger(CSVEventConverter.class);
 
