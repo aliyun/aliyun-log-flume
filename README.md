@@ -42,7 +42,7 @@ agent.sources.netcatsource.bind = localhost
 agent.sources.netcatsource.port = 44444
 
 # Describe the sink:
-agent.sources.slssrc.type = com.aliyun.loghub.sink.LoghubSink
+agent.sources.slssrc.type = com.aliyun.loghub.flume.sink.LoghubSink
 agent.sources.slssrc.endpoint = <Your Loghub endpoint>
 agent.sources.slssrc.project = <Your Loghub project>
 agent.sources.slssrc.logstore = <Your Loghub logstore>
@@ -63,16 +63,12 @@ agent.sinks.slssink.channel = memoryChannel
 #### Source example
 Ingesting data from Loghub and save to HDFS:
 ```
-#
-# Source: Loghub
-# Sink: HDFS
-#
 agent.sources = slssource
 agent.sinks = hdfssink
 agent.channels = memoryChannel
 
 # Configure the source:
-agent.sources.slssrc.type = com.aliyun.loghub.source.LoghubSource
+agent.sources.slssrc.type = com.aliyun.loghub.flume.source.LoghubSource
 agent.sources.slssrc.endpoint = <Your Loghub endpoint>
 agent.sources.slssrc.project = <Your Loghub project>
 agent.sources.slssrc.logstore = <Your Loghub logstore>
@@ -110,5 +106,4 @@ After the configuration file is created, run the following command under apache-
 ```
 ./bin/flume-ng agent --name agent --conf conf  --conf-file conf/flume-loghub.conf
 ```
-
 
