@@ -11,9 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.aliyun.loghub.flume.LoghubConstants.COLUMNS_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.QUOTE_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.SEPARATOR_KEY;
+import static com.aliyun.loghub.flume.Constants.COLUMNS_KEY;
+import static com.aliyun.loghub.flume.Constants.QUOTE_KEY;
+import static com.aliyun.loghub.flume.Constants.SEPARATOR_KEY;
 
 
 public class CSVEventConverter implements Converter<Event, LogItem> {

@@ -7,6 +7,7 @@ import com.aliyun.openservices.aliyun.log.producer.ProjectConfig;
 import com.aliyun.openservices.aliyun.log.producer.ProjectConfigs;
 import com.aliyun.openservices.aliyun.log.producer.Result;
 import com.aliyun.openservices.log.common.LogItem;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
@@ -23,19 +24,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import static com.aliyun.loghub.flume.LoghubConstants.ACCESS_KEY_ID_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.ACCESS_KEY_SECRET_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.BATCH_SIZE_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.CSV_FORMAT;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_BATCH_SIZE;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_SINK_FORMAT;
-import static com.aliyun.loghub.flume.LoghubConstants.ENDPOINT_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.FORMAT_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.LOGSTORE_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.MAX_BUFFER_SIZE;
-import static com.aliyun.loghub.flume.LoghubConstants.PROJECT_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.STRING_FORMAT;
-import static com.aliyun.loghub.flume.Utils.ensureNotEmpty;
+import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
+import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
+import static com.aliyun.loghub.flume.Constants.BATCH_SIZE_KEY;
+import static com.aliyun.loghub.flume.Constants.CSV_FORMAT;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_SINK_FORMAT;
+import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
+import static com.aliyun.loghub.flume.Constants.FORMAT_KEY;
+import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
+import static com.aliyun.loghub.flume.Constants.MAX_BUFFER_SIZE;
+import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
+import static com.aliyun.loghub.flume.Constants.STRING_FORMAT;
 
 public class LoghubSink extends AbstractSink implements Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(LoghubSink.class);
@@ -149,6 +149,10 @@ public class LoghubSink extends AbstractSink implements Configurable {
         String format = context.getString(FORMAT_KEY);
         converter = createConverter(format);
         converter.configure(context);
+    }
+
+    private static void ensureNotEmpty(String value, String name) {
+        Preconditions.checkArgument(value != null && !value.isEmpty(), "Missing parameter: " + name);
     }
 
     private static Converter<Event, LogItem> createConverter(String format) {

@@ -16,11 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.aliyun.loghub.flume.LoghubConstants.COLUMNS_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.NULL_AS_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.QUOTE_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.SEPARATOR_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.TIMESTAMP_HEADER;
+import static com.aliyun.loghub.flume.Constants.COLUMNS_KEY;
+import static com.aliyun.loghub.flume.Constants.NULL_AS_KEY;
+import static com.aliyun.loghub.flume.Constants.QUOTE_KEY;
+import static com.aliyun.loghub.flume.Constants.SEPARATOR_KEY;
+import static com.aliyun.loghub.flume.Constants.TIMESTAMP_HEADER;
 
 
 public class CSVEventSerializer implements EventSerializer {

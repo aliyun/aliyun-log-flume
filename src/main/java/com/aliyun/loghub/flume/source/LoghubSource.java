@@ -2,6 +2,7 @@ package com.aliyun.loghub.flume.source;
 
 import com.aliyun.openservices.loghub.client.ClientWorker;
 import com.aliyun.openservices.loghub.client.config.LogHubConfig;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -19,37 +20,36 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.aliyun.loghub.flume.LoghubConstants.ACCESS_KEY_ID_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.ACCESS_KEY_SECRET_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.BACKOFF_SLEEP_INCREMENT_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.BATCH_DURATION_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.BATCH_SIZE_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.CONSUMER_GROUP_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.CONSUME_POSITION_END;
-import static com.aliyun.loghub.flume.LoghubConstants.CONSUME_POSITION_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.CONSUME_POSITION_START_TIME_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.CONSUME_POSITION_TIMESTAMP;
-import static com.aliyun.loghub.flume.LoghubConstants.CSV_FORMAT;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_BACKOFF_SLEEP_INCREMENT;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_BATCH_DURATION_MS;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_BATCH_SIZE;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_FETCH_IN_ORDER;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_HEARTBEAT_INTERVAL_MS;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_MAX_BACKOFF_SLEEP;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_MAX_BUFFER_SIZE;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_SOURCE_FORMAT;
-import static com.aliyun.loghub.flume.LoghubConstants.DEFAULT_USER_RECORD_TIME;
-import static com.aliyun.loghub.flume.LoghubConstants.ENDPOINT_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.FETCH_IN_ORDER_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.FORMAT_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.HEARTBEAT_INTERVAL_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.JSON_FORMAT;
-import static com.aliyun.loghub.flume.LoghubConstants.LOGSTORE_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.MAX_BACKOFF_SLEEP_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.MAX_BUFFER_SIZE;
-import static com.aliyun.loghub.flume.LoghubConstants.PROJECT_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.USER_RECORD_TIME_KEY;
-import static com.aliyun.loghub.flume.Utils.ensureNotEmpty;
+import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
+import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
+import static com.aliyun.loghub.flume.Constants.BACKOFF_SLEEP_INCREMENT_KEY;
+import static com.aliyun.loghub.flume.Constants.BATCH_DURATION_KEY;
+import static com.aliyun.loghub.flume.Constants.BATCH_SIZE_KEY;
+import static com.aliyun.loghub.flume.Constants.CONSUMER_GROUP_KEY;
+import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_END;
+import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_KEY;
+import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_START_TIME_KEY;
+import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_TIMESTAMP;
+import static com.aliyun.loghub.flume.Constants.CSV_FORMAT;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_BACKOFF_SLEEP_INCREMENT;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_DURATION_MS;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_IN_ORDER;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_HEARTBEAT_INTERVAL_MS;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_MAX_BACKOFF_SLEEP;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_MAX_BUFFER_SIZE;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_SOURCE_FORMAT;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_USER_RECORD_TIME;
+import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
+import static com.aliyun.loghub.flume.Constants.FETCH_IN_ORDER_KEY;
+import static com.aliyun.loghub.flume.Constants.FORMAT_KEY;
+import static com.aliyun.loghub.flume.Constants.HEARTBEAT_INTERVAL_KEY;
+import static com.aliyun.loghub.flume.Constants.JSON_FORMAT;
+import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
+import static com.aliyun.loghub.flume.Constants.MAX_BACKOFF_SLEEP_KEY;
+import static com.aliyun.loghub.flume.Constants.MAX_BUFFER_SIZE;
+import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
+import static com.aliyun.loghub.flume.Constants.USER_RECORD_TIME_KEY;
 import static com.aliyun.openservices.loghub.client.config.LogHubCursorPosition.BEGIN_CURSOR;
 import static com.aliyun.openservices.loghub.client.config.LogHubCursorPosition.END_CURSOR;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -120,6 +120,10 @@ public class LoghubSource extends AbstractPollableSource implements Configurable
         String format = context.getString(FORMAT_KEY, DEFAULT_SOURCE_FORMAT);
         serializer = createSerializer(format, useRecordTime);
         serializer.configure(context);
+    }
+
+    private static void ensureNotEmpty(String value, String name) {
+        Preconditions.checkArgument(value != null && !value.isEmpty(), "Missing parameter: " + name);
     }
 
     private static EventSerializer createSerializer(String format, boolean useRecordTime) {

@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.aliyun.loghub.flume.LoghubConstants.RECORD_TAG_PREFIX;
-import static com.aliyun.loghub.flume.LoghubConstants.RECORD_TIME_KEY;
-import static com.aliyun.loghub.flume.LoghubConstants.TIMESTAMP_HEADER;
+import static com.aliyun.loghub.flume.Constants.RECORD_TAG_PREFIX;
+import static com.aliyun.loghub.flume.Constants.RECORD_TIME_KEY;
+import static com.aliyun.loghub.flume.Constants.TIMESTAMP_HEADER;
 
 
 public class JSONEventSerializer implements EventSerializer {

@@ -1,7 +1,7 @@
 package com.aliyun.loghub.flume;
 
 
-public class LoghubConstants {
+public class Constants {
 
     public static final String CONSUMER_GROUP_KEY = "consumerGroup";
     public static final String ENDPOINT_KEY = "endpoint";

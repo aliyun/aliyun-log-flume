@@ -15,7 +15,7 @@ import org.junit.Test;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.aliyun.loghub.flume.LoghubConstants.SERIALIZER_KEY;
+import static com.aliyun.loghub.flume.Constants.SERIALIZER_KEY;
 import static org.apache.flume.source.SpoolDirectorySourceConfigurationConstants.BATCH_SIZE;
 
 
