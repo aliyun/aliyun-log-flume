@@ -1,22 +1,20 @@
-```Apache Flume``` is a open source project used for moving massive quantities of streaming data between different data source like HDFS, Kakfa, Loghub. This project implemented Loghub Source for ingesting data from Loghub and Loghub Sink for collecting data from other source and publish to Loghub. 
+```Apache Flume``` is a open source project used for moving massive quantities of streaming data between different data source like HDFS, Kakfa, Loghub. This project implemented Loghub Source and Sink for ingesting data from Loghub and collecting data from other source and publish to Loghub. 
 
 ### Requirements
 - Java 1.8+
-- Maven installed.
+- Maven 3.x+.
 
 ### Setup up Flume
 
 #### Downlaod Flume
 
-Download ```Apache Flume``` from the official site - http://www.apache.org/dyn/closer.lua/flume/1.9.0/apache-flume-1.9.0-bin.tar.gz, the latest version is ```1.9.0```. 
-
-Copy the downloaded tarball in the directory of your server and extract contents using the following command:
+Download ```Apache Flume``` from the official site - http://www.apache.org/dyn/closer.lua/flume/1.9.0/apache-flume-1.9.0-bin.tar.gz, the latest version is ```1.9.0```. Copy the downloaded tarball in the directory of your server and extract contents using the following command:
 
 ```tar -xvf apache-flume-1.9.0-bin.tar.gz```
  
-This command will create a new directory named apache-flume-1.9.0-bin and extract files into it. All official sinks/sources library are placed under the the directory apache-flume-1.9.0-bin/lib. 
+This command will create a new directory named apache-flume-1.9.0-bin and extract files into it. All official sinks/sources library are placed under the the directory apache-flume-1.9.0-bin/lib. There is also a directory apache-flume-1.9.0-bin/conf, we'll add our configuration file in that directory later.
 
-#### Build 
+#### Build this project
 
 Go to the project root folder, and build aliyun-log-flume using the following command:
 
@@ -24,9 +22,12 @@ Go to the project root folder, and build aliyun-log-flume using the following co
 
 After this command successfully executed, a new jar named ```aliyun-log-flume-1.0-SNAPSHOT.jar``` will be generated under directory target, all denpendencies of this project are packaged into the jar file as well. Then copy aliyun-log-flume-1.0-SNAPSHOT.jar to apache-flume-1.9.0-bin/lib.
 
+### Configuration
 
-### Usage
-#### Sink
+Create a new configuration file ```flume-loghub.conf``` under apache-flume-1.9.0-bin/conf, and add our configuration of sink or source in this file, here is an example for collecting data from netcat to Loghub and from Loghub to HDFS:
+
+##### Sink example
+
 Loghub sink used to streaming data from flume to Loghub, here is an example for collecting data from ```netcat``` and send to Loghub:
 ```
 agent.sources = netcatsource
@@ -57,8 +58,8 @@ agent.sources.netcatsource.channels = memoryChannel
 agent.sinks.slssink.channel = memoryChannel
 ```
 
-#### Source
-Loghub source used to consuming data from Loghub and send to other system like HDFS:
+#### Source example
+Ingesting data from Loghub and save to HDFS:
 ```
 #
 # Source: Loghub
@@ -101,5 +102,11 @@ agent.sources.slssource.channels = memoryChannel
 agent.sinks.hdfssink.channel = memoryChannel
 ```
 
+
+### Start Flume
+After the configuration file is created, run the following command under apache-flume-1.9.0-bin:
+```
+./bin/flume-ng agent --name agent --conf conf  --conf-file conf/flume-loghub.conf
+```
 
 
