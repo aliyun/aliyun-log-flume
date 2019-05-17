@@ -1,6 +1,6 @@
 # Aliyun Log Flume
 
-```Apache Flume``` is a open source project used for moving massive quantities of streaming data between different data source like HDFS, Kakfa, Loghub. This project implemented Loghub Source and Sink for ingesting data from Loghub and collecting data from other source and publish to Loghub. 
+```Apache Flume``` is a open source project used for moving massive quantities of streaming data. Aliyun Log Flume implemented Flume Source and Sink for moving data between Loghub and external data source like HDFS, Kakfa. 
 
 ### Requirements
 - Java 1.8+
