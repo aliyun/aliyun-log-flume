@@ -55,15 +55,25 @@ class LogReceiver implements ILogHubProcessor {
             if (numberOfEvents == 0) {
                 continue;
             }
-            try {
-                long beginTime = System.currentTimeMillis();
-                processor.processEventBatch(events);
-                sourceCounter.addToEventAcceptedCount(events.size());
-                long elapsedTime = System.currentTimeMillis() - beginTime;
-                LOG.debug("Processed {} events, elapsedTime {}", numberOfEvents, elapsedTime);
-            } catch (final Exception ex) {
-                sourceCounter.incrementEventReadOrChannelFail(ex);
-                LOG.error("{} - Exception thrown while processing events", sourceName, ex);
+            for (int i = 0; i < 10; i++) {
+                try {
+                    long beginTime = System.currentTimeMillis();
+                    processor.processEventBatch(events);
+                    sourceCounter.addToEventAcceptedCount(events.size());
+                    long elapsedTime = System.currentTimeMillis() - beginTime;
+                    LOG.debug("Processed {} events, elapsedTime {}", numberOfEvents, elapsedTime);
+                    break;
+                } catch (final Exception ex) {
+                    LOG.error("{} - Exception thrown while processing events", sourceName, ex);
+                }
+                LOG.info("Retrying {}/10", i + 1);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    // Do not save checkpoint!
+                    return null;
+                }
             }
         }
         long nowMs = System.currentTimeMillis();

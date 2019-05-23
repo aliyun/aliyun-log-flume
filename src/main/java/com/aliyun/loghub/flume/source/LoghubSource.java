@@ -32,7 +32,6 @@ import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_IN_ORDER;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_HEARTBEAT_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_SOURCE_FORMAT;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_USER_RECORD_TIME;
 import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
 import static com.aliyun.loghub.flume.Constants.FETCH_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.FETCH_IN_ORDER_KEY;
@@ -41,7 +40,6 @@ import static com.aliyun.loghub.flume.Constants.HEARTBEAT_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.JSON_FORMAT;
 import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
 import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
-import static com.aliyun.loghub.flume.Constants.USER_RECORD_TIME_KEY;
 import static com.google.common.base.Preconditions.checkArgument;
 
 
@@ -70,7 +68,6 @@ public class LoghubSource extends AbstractSource implements
         long heartbeatIntervalMs = context.getLong(HEARTBEAT_INTERVAL_MS, DEFAULT_HEARTBEAT_INTERVAL_MS);
         long fetchIntervalMs = context.getLong(FETCH_INTERVAL_MS, DEFAULT_FETCH_INTERVAL_MS);
         boolean fetchInOrder = context.getBoolean(FETCH_IN_ORDER_KEY, DEFAULT_FETCH_IN_ORDER);
-        boolean useRecordTime = context.getBoolean(USER_RECORD_TIME_KEY, DEFAULT_USER_RECORD_TIME);
         int batchSize = context.getInteger(BATCH_SIZE_KEY, DEFAULT_BATCH_SIZE);
 
         if (StringUtils.isBlank(consumerGroup)) {
@@ -102,7 +99,7 @@ public class LoghubSource extends AbstractSource implements
         config.setConsumeInOrder(fetchInOrder);
         config.setDataFetchIntervalMillis(fetchIntervalMs);
         String format = context.getString(FORMAT_KEY, DEFAULT_SOURCE_FORMAT);
-        serializer = createSerializer(format, useRecordTime);
+        serializer = createSerializer(format);
         serializer.configure(context);
     }
 
@@ -118,15 +115,15 @@ public class LoghubSource extends AbstractSource implements
         Preconditions.checkArgument(value != null && !value.isEmpty(), "Missing parameter: " + name);
     }
 
-    private static EventSerializer createSerializer(String format, boolean useRecordTime) {
+    private static EventSerializer createSerializer(String format) {
         if (StringUtils.isBlank(format)) {
             LOG.info("Event format is not specified, will use default format {}", format);
             format = DEFAULT_SOURCE_FORMAT;
         }
         if (format.equals(CSV_FORMAT)) {
-            return new CSVEventSerializer(useRecordTime);
+            return new CSVEventSerializer();
         } else if (format.equals(JSON_FORMAT)) {
-            return new JSONEventSerializer(useRecordTime);
+            return new JSONEventSerializer();
         } else {
             throw new IllegalArgumentException("Unimplemented format for Loghub source: " + format);
         }

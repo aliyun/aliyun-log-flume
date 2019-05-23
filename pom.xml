@@ -10,12 +10,13 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flume.version>1.9.0</flume.version>
+        <flume.version>1.8.0</flume.version>
         <junit.version>4.10</junit.version>
         <loghub.consumergroup.version>0.6.16</loghub.consumergroup.version>
         <loghub.producer.version>0.2.0</loghub.producer.version>
         <loghub.sdk.version>0.6.31</loghub.sdk.version>
         <protobuf.version>2.5.0</protobuf.version>
+        <opencsv.version>4.6</opencsv.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -52,6 +53,11 @@
             <groupId>com.aliyun.openservices</groupId>
             <artifactId>loghub-client-lib</artifactId>
             <version>${loghub.consumergroup.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>${opencsv.version}</version>
         </dependency>
     </dependencies>
     <build>

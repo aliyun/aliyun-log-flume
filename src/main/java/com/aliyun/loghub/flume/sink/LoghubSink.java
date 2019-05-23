@@ -109,7 +109,6 @@ public class LoghubSink extends AbstractSink implements Configurable {
             transaction.commit();
         } catch (Exception ex) {
             LOG.error("Failed to publish events", ex);
-            counter.incrementEventWriteOrChannelFail(ex);
             if (transaction != null) {
                 try {
                     transaction.rollback();

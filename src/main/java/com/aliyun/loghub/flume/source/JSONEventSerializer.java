@@ -13,18 +13,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.aliyun.loghub.flume.Constants.DEFAULT_USER_RECORD_TIME;
 import static com.aliyun.loghub.flume.Constants.RECORD_TAG_PREFIX;
 import static com.aliyun.loghub.flume.Constants.RECORD_TIME_KEY;
 import static com.aliyun.loghub.flume.Constants.TIMESTAMP_HEADER;
+import static com.aliyun.loghub.flume.Constants.USER_RECORD_TIME_KEY;
 
 
 public class JSONEventSerializer implements EventSerializer {
 
-    private final boolean useRecordTime;
-
-    JSONEventSerializer(boolean useRecordTime) {
-        this.useRecordTime = useRecordTime;
-    }
+    private boolean useRecordTime;
 
     @Override
     public List<Event> serialize(FastLogGroup logGroup) {
@@ -60,6 +58,6 @@ public class JSONEventSerializer implements EventSerializer {
 
     @Override
     public void configure(Context context) {
-        // No-op
+        useRecordTime = context.getBoolean(USER_RECORD_TIME_KEY, DEFAULT_USER_RECORD_TIME);
     }
 }

@@ -45,7 +45,6 @@ public class Constants {
     public static final String COLUMNS_KEY = "columns";
     public static final String SEPARATOR_KEY = "separator";
     public static final String QUOTE_KEY = "quote";
-    public static final String NULL_AS_KEY = "nullAs";
 
     public static final String TIMESTAMP_HEADER = "timestamp";
     public static final String RECORD_TIME_KEY = "__time__";
