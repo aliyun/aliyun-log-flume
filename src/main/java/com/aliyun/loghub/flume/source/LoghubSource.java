@@ -22,9 +22,9 @@ import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
 import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
 import static com.aliyun.loghub.flume.Constants.BATCH_SIZE;
 import static com.aliyun.loghub.flume.Constants.CONSUMER_GROUP_KEY;
+import static com.aliyun.loghub.flume.Constants.CONSUME_INITIAL_POSITION;
+import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_BEGIN;
 import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_END;
-import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_KEY;
-import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_START_TIME_KEY;
 import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_TIMESTAMP;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_INTERVAL_MS;
@@ -74,12 +74,11 @@ public class LoghubSource extends AbstractSource implements
         String consumerId = UUID.randomUUID().toString();
         LOG.info("Using consumer group {}, consumer  {}", consumerGroup, consumerId);
 
-        String position = context.getString(CONSUME_POSITION_KEY, CONSUME_POSITION_END);
+        String position = context.getString(CONSUME_INITIAL_POSITION, CONSUME_POSITION_BEGIN);
         switch (position) {
             case CONSUME_POSITION_TIMESTAMP:
-                Integer startTime = context.getInteger(CONSUME_POSITION_START_TIME_KEY);
-                checkArgument(startTime != null, String.format("Missing parameter: %s when set config %s to %s.",
-                        CONSUME_POSITION_START_TIME_KEY, CONSUME_POSITION_KEY, CONSUME_POSITION_TIMESTAMP));
+                Integer startTime = context.getInteger(CONSUME_POSITION_TIMESTAMP);
+                checkArgument(startTime != null, "Missing parameter: " + CONSUME_POSITION_TIMESTAMP);
                 config = new LogHubConfig(consumerGroup, consumerId, endpoint, project, logstore, accessKeyId, accessKey,
                         startTime, batchSize);
                 break;

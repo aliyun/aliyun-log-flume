@@ -9,11 +9,10 @@ public class Constants {
     public static final String LOGSTORE_KEY = "logstore";
     public static final String ACCESS_KEY_ID_KEY = "accessKeyId";
     public static final String ACCESS_KEY_SECRET_KEY = "accessKey";
-    public static final String CONSUME_POSITION_KEY = "consumerPosition";
+    public static final String CONSUME_INITIAL_POSITION = "initialPosition";
     public static final String CONSUME_POSITION_BEGIN = "begin";
     public static final String CONSUME_POSITION_END = "end";
     public static final String CONSUME_POSITION_TIMESTAMP = "timestamp";
-    public static final String CONSUME_POSITION_START_TIME_KEY = "startTime";
     /**
      * Consumer group heartbeat interval in millisecond.
      */

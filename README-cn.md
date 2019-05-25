@@ -23,8 +23,51 @@ ElasticSearch等，初次之外对于常见的数据源在社区也都能找到�
 通过sink的方式可以将其他数据源的数据通过Flume接入SLS。目前支持两种解析格式：
 - SIMPLE: 将整个Flume Event 作为一个字段写入Loghub。
 - DELIMITED：将整个Flume Event 作为分隔符分隔的数据根据配置的列名解析成对应的字段写入Loghub。
+支持的配置如下：
+
+|名称|描述|默认值|是否必需|
+|---|---|---|---|
+|type| Flume sink 类型,固定为com.aliyun.loghub.flume.sink.LoghubSink | | Y |
+|endpoint| Loghub endpoint| | Y |
+|project| Loghub project| | Y |
+|logstore| Loghub logstore| | Y |
+|accessKeyId| Loghub accessKeyId| | Y |
+|accessKey| Loghub accessKey| | Y |
+|batchSize| 写入Loghub批数据大小|1000 | N |
+|maxBufferSize| 缓存队列大小|1000 | N |
+|serializer| Event序列化格式，支持DELIMITED, SIMPLE,或者自定义serializer，如果是自定义serializer，此处填完整类名称 |SIMPLE | N |
+|columns| serializer为DELIMITED时，必须指定字段列表，用逗号分隔，顺序与实际的数据中字段顺序一致。| | N |
+|separatorChar| serializer为DELIMITED时，用于指定数据的分隔符，必须为单个字符|, | N |
+|quoteChar| serializer为DELIMITED时，用于指定Quote字符 |“ | N |
+|escapeChar| serializer为DELIMITED时，用于指定转义字符 | “ | N |
+|useRecordTime| 是否使用数据中的timestamp字段作为日志时间| false| N |
 
 #### Loghub Source
 通过Source的方式可以将Loghub的数据经过Flume投递到其他的数据源。目前支持两种输出格式：
 - DELIMITED，数据以分隔符的方式写入Flume。
 - JSON，数据以JSON的形式写入Flume。
+
+支持的配置如下：
+
+|名称|描述|默认值|是否必需|
+|---|---|---|---|
+|type| Flume Source 类型，固定为com.aliyun.loghub.flume.source.LoghubSource | | Y |
+|endpoint| Loghub endpoint| | Y |
+|project| Loghub project| | Y |
+|logstore| Loghub logstore| | Y |
+|accessKeyId| Loghub accessKeyId| | Y |
+|accessKey| Loghub accessKey| | Y |
+|heartbeatIntervalMs| 客户端和Loghub的心跳间隔，单位毫秒|30000 | N |
+|fetchIntervalMs| Loghub数据拉取间隔，单位毫秒|100 | N |
+|fetchInOrder| 是否按顺序消费|false | N |
+|batchSize| 拉取批量大小 |1000 | N |
+|consumerGroup| 拉取的消费组名称 | 随机产生 | N |
+|initialPosition| 拉取起点位置，支持begin, end, timestamp|begin | N |
+|timestamp| 当我initialPosition为timestamp时，必须指定时间戳，Unix时间戳格式 | | N |
+|deserializer| Event反序列化格式，支持DELIMITED, JSON,或者自定义deserializer，如果是自定义deserializer，此处填完整类名称 |DELIMITED | Y |
+|columns| deserializer为DELIMITED时，必须指定字段列表，用逗号分隔，顺序与实际的数据中字段顺序一致。| | N |
+|separatorChar| deserializer为DELIMITED时，用于指定数据的分隔符，必须为单个字符|, | N |
+|quoteChar| deserializer为DELIMITED时，用于指定Quote字符 |“ | N |
+|escapeChar| deserializer为DELIMITED时，用于指定转义字符 | “ | N |
+|appendTimestamp| deserializer为DELIMITED时，是否将时间戳作为一个字段append到每行末位 | false | N |
+|useRecordTime| 是否使用日志的时间，用于Event header中指定时间戳，如果为false则使用系统时间| false| N |
