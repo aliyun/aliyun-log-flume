@@ -14,20 +14,21 @@ Flume是Apache开源的一个数据搬运工具，每个Flume Agent进程可以�
 
 
 #### aliyun-log-flume 
-aliyun-log-flume 是一个实现日志服务（Loghub）和Flume对接的插件，可以通过Flume和其他的数据
-系统如HDFS，Kfaka等系统打通。目前Flume官方支持的插件除了HDFS，Kakfa之外还有Hive，Hbase，
-ElasticSearch等，初次之外对于常见的数据源在社区也都能找到对应的插件支持。aliyun-log-flume 
-为Loghub 实现了Sink和Source 插件。
+aliyun-log-flume 是一个实现日志服务（Loghub）和Flume对接的插件，可以通过Flume将日志服务和其他的数据
+系统如HDFS，Kafka等系统打通。目前Flume官方支持的插件除了HDFS，Kafka之外还有Hive，HBase，
+ElasticSearch等，除此之外对于常见的数据源在社区也都能找到对应的插件支持。
+aliyun-log-flume 为Loghub 实现了Sink和Source 插件。
 
 ##### Loghub Sink
 通过sink的方式可以将其他数据源的数据通过Flume接入SLS。目前支持两种解析格式：
-- SIMPLE: 将整个Flume Event 作为一个字段写入Loghub。
+- SIMPLE：将整个Flume Event 作为一个字段写入Loghub。
 - DELIMITED：将整个Flume Event 作为分隔符分隔的数据根据配置的列名解析成对应的字段写入Loghub。
+
 支持的配置如下：
 
-|名称|描述|默认值|是否必需|
+|名称|描述|默认值|必需|
 |---|---|---|---|
-|type| Flume sink 类型,固定为com.aliyun.loghub.flume.sink.LoghubSink | | Y |
+|type| 固定为com.aliyun.loghub.flume.sink.LoghubSink | | Y |
 |endpoint| Loghub endpoint| | Y |
 |project| Loghub project| | Y |
 |logstore| Loghub logstore| | Y |
@@ -44,14 +45,14 @@ ElasticSearch等，初次之外对于常见的数据源在社区也都能找到�
 
 #### Loghub Source
 通过Source的方式可以将Loghub的数据经过Flume投递到其他的数据源。目前支持两种输出格式：
-- DELIMITED，数据以分隔符的方式写入Flume。
-- JSON，数据以JSON的形式写入Flume。
+- DELIMITED：数据以分隔符的方式写入Flume。
+- JSON：数据以JSON的形式写入Flume。
 
 支持的配置如下：
 
-|名称|描述|默认值|是否必需|
+|名称|描述|默认值|必需|
 |---|---|---|---|
-|type| Flume Source 类型，固定为com.aliyun.loghub.flume.source.LoghubSource | | Y |
+|type| 固定为com.aliyun.loghub.flume.source.LoghubSource | | Y |
 |endpoint| Loghub endpoint| | Y |
 |project| Loghub project| | Y |
 |logstore| Loghub logstore| | Y |
