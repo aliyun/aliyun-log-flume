@@ -63,7 +63,7 @@ aliyun-log-flume 为Loghub 实现了Sink和Source 插件。
 |fetchInOrder| 是否按顺序消费|false | N |
 |batchSize| 拉取批量大小 |1000 | N |
 |consumerGroup| 拉取的消费组名称 | 随机产生 | N |
-|initialPosition| 拉取起点位置，支持begin, end, timestamp|begin | N |
+|initialPosition| 拉取起点位置，支持begin, end, timestamp。注意：如果服务端已经存在checkpoint，会优先使用服务端的checkpoint|begin | N |
 |timestamp| 当我initialPosition为timestamp时，必须指定时间戳，Unix时间戳格式 | | N |
 |deserializer| Event反序列化格式，支持DELIMITED, JSON,或者自定义deserializer，如果是自定义deserializer，此处填完整类名称 |DELIMITED | Y |
 |columns| deserializer为DELIMITED时，必须指定字段列表，用逗号分隔，顺序与实际的数据中字段顺序一致。| | N |
