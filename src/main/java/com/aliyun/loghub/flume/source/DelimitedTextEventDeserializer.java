@@ -20,14 +20,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.aliyun.loghub.flume.Constants.COLUMNS_KEY;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_USER_RECORD_TIME;
-import static com.aliyun.loghub.flume.Constants.TIMESTAMP_HEADER;
-import static com.aliyun.loghub.flume.Constants.USER_RECORD_TIME_KEY;
+import static com.aliyun.loghub.flume.Constants.APPEND_TIMESTAMP;
+import static com.aliyun.loghub.flume.Constants.COLUMNS;
+import static com.aliyun.loghub.flume.Constants.ESCAPE_CHAR;
+import static com.aliyun.loghub.flume.Constants.LINE_END;
+import static com.aliyun.loghub.flume.Constants.QUOTE_CHAR;
+import static com.aliyun.loghub.flume.Constants.SEPARATOR_CHAR;
+import static com.aliyun.loghub.flume.Constants.TIMESTAMP;
+import static com.aliyun.loghub.flume.Constants.USE_RECORD_TIME;
 
 
-public class CSVEventSerializer implements EventSerializer {
-    private static final Logger LOG = LoggerFactory.getLogger(CSVEventSerializer.class);
+public class DelimitedTextEventDeserializer implements EventDeserializer {
+    private static final Logger LOG = LoggerFactory.getLogger(DelimitedTextEventDeserializer.class);
+
+    static final String ALIAS = "DELIMITED";
 
     private Map<String, Integer> fieldIndexMapping;
     private boolean useRecordTime;
@@ -40,7 +46,7 @@ public class CSVEventSerializer implements EventSerializer {
     private static final String DEFAULT_LINE_END = "";
 
     @Override
-    public List<Event> serialize(FastLogGroup logGroup) {
+    public List<Event> deserialize(FastLogGroup logGroup) {
         int count = logGroup.getLogsCount();
         int width = fieldIndexMapping.size();
         if (appendTimestamp) {
@@ -77,19 +83,19 @@ public class CSVEventSerializer implements EventSerializer {
             if (appendTimestamp) {
                 record[width - 1] = timestampText;
             }
-            writer.getBuffer().setLength(0);
             csvWriter.writeNext(record, false);
             try {
                 csvWriter.flush();
             } catch (IOException ex) {
-                throw new FlumeException("Failed to flush CSV writer", ex);
+                throw new FlumeException("Failed to flush writer", ex);
             }
-            Event event = EventBuilder.withBody(writer.toString().getBytes(charset));
-            event.setHeaders(Collections.singletonMap(TIMESTAMP_HEADER, timestampText));
+            Event event = EventBuilder.withBody(writer.toString(), charset,
+                    Collections.singletonMap(TIMESTAMP, timestampText));
             events.add(event);
             for (int i = 0; i < width; i++) {
                 record[i] = null;
             }
+            writer.getBuffer().setLength(0);
         }
         return events;
     }
@@ -108,17 +114,17 @@ public class CSVEventSerializer implements EventSerializer {
 
     @Override
     public void configure(Context context) {
-        useRecordTime = context.getBoolean(USER_RECORD_TIME_KEY, DEFAULT_USER_RECORD_TIME);
-        String columns = context.getString(COLUMNS_KEY);
+        useRecordTime = context.getBoolean(USE_RECORD_TIME, false);
+        String columns = context.getString(COLUMNS);
         if (StringUtils.isBlank(columns)) {
-            throw new IllegalArgumentException("Missing parameters: " + COLUMNS_KEY);
+            throw new IllegalArgumentException("Missing parameters: " + COLUMNS);
         }
-        separatorChar = getChar(context, "separatorChar", CSVWriter.DEFAULT_SEPARATOR);
-        quoteChar = getChar(context, "quoteChar", CSVWriter.DEFAULT_QUOTE_CHARACTER);
-        escapeChar = getChar(context, "escapeChar", CSVWriter.DEFAULT_ESCAPE_CHARACTER);
+        separatorChar = getChar(context, SEPARATOR_CHAR, CSVWriter.DEFAULT_SEPARATOR);
+        quoteChar = getChar(context, QUOTE_CHAR, CSVWriter.DEFAULT_QUOTE_CHARACTER);
+        escapeChar = getChar(context, ESCAPE_CHAR, CSVWriter.DEFAULT_ESCAPE_CHARACTER);
         LOG.info("separatorChar=[" + separatorChar + "] quoteChar=[" + quoteChar + "] escapeChar=[" + escapeChar + "]");
-        lineEnd = context.getString("lineEnd", DEFAULT_LINE_END);
-        appendTimestamp = context.getBoolean("appendTimestamp", false);
+        lineEnd = context.getString(LINE_END, DEFAULT_LINE_END);
+        appendTimestamp = context.getBoolean(APPEND_TIMESTAMP, false);
         String[] fields = columns.split(",", -1);
         int width = fields.length;
         fieldIndexMapping = new HashMap<>(width);

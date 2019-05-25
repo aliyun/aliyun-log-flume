@@ -21,7 +21,7 @@ class LogReceiver implements ILogHubProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(LogReceiver.class);
 
     private final ChannelProcessor processor;
-    private final EventSerializer serializer;
+    private final EventDeserializer deserializer;
     private final SourceCounter sourceCounter;
     private final String sourceName;
 
@@ -29,11 +29,11 @@ class LogReceiver implements ILogHubProcessor {
     private long checkpointSavedAt = 0;
 
     LogReceiver(ChannelProcessor processor,
-                EventSerializer serializer,
+                EventDeserializer deserializer,
                 SourceCounter sourceCounter,
                 String sourceName) {
         this.processor = processor;
-        this.serializer = serializer;
+        this.deserializer = deserializer;
         this.sourceCounter = sourceCounter;
         this.sourceName = sourceName;
     }
@@ -48,7 +48,7 @@ class LogReceiver implements ILogHubProcessor {
     public String process(List<LogGroupData> logGroups, ILogHubCheckPointTracker tracker) {
         for (LogGroupData data : logGroups) {
             FastLogGroup logGroup = data.GetFastLogGroup();
-            List<Event> events = serializer.serialize(logGroup);
+            List<Event> events = deserializer.deserialize(logGroup);
 
             int numberOfEvents = events.size();
             LOG.debug("{} events serialized for shard {}", numberOfEvents, shardId);

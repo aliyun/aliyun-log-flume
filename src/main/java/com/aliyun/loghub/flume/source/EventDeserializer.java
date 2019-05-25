@@ -8,7 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public interface EventSerializer extends Configurable {
+public interface EventDeserializer extends Configurable {
 
     Charset charset = StandardCharsets.UTF_8;
 
@@ -18,5 +18,5 @@ public interface EventSerializer extends Configurable {
      * @param logGroup
      * @return
      */
-    List<Event> serialize(FastLogGroup logGroup);
+    List<Event> deserialize(FastLogGroup logGroup);
 }

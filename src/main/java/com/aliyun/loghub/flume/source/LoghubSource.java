@@ -20,24 +20,21 @@ import java.util.UUID;
 
 import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
 import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
-import static com.aliyun.loghub.flume.Constants.BATCH_SIZE_KEY;
+import static com.aliyun.loghub.flume.Constants.BATCH_SIZE;
 import static com.aliyun.loghub.flume.Constants.CONSUMER_GROUP_KEY;
 import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_END;
 import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_KEY;
 import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_START_TIME_KEY;
 import static com.aliyun.loghub.flume.Constants.CONSUME_POSITION_TIMESTAMP;
-import static com.aliyun.loghub.flume.Constants.CSV_FORMAT;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_IN_ORDER;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_HEARTBEAT_INTERVAL_MS;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_SOURCE_FORMAT;
+import static com.aliyun.loghub.flume.Constants.DESERIALIZER;
 import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
 import static com.aliyun.loghub.flume.Constants.FETCH_INTERVAL_MS;
-import static com.aliyun.loghub.flume.Constants.FETCH_IN_ORDER_KEY;
-import static com.aliyun.loghub.flume.Constants.FORMAT_KEY;
+import static com.aliyun.loghub.flume.Constants.FETCH_IN_ORDER;
 import static com.aliyun.loghub.flume.Constants.HEARTBEAT_INTERVAL_MS;
-import static com.aliyun.loghub.flume.Constants.JSON_FORMAT;
 import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
 import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -50,7 +47,7 @@ public class LoghubSource extends AbstractSource implements
     private LogHubConfig config;
     private ClientWorker worker;
     private SourceCounter counter;
-    private EventSerializer serializer;
+    private EventDeserializer deserializer;
 
     @Override
     public void configure(Context context) {
@@ -67,8 +64,8 @@ public class LoghubSource extends AbstractSource implements
         ensureNotEmpty(accessKey, ACCESS_KEY_SECRET_KEY);
         long heartbeatIntervalMs = context.getLong(HEARTBEAT_INTERVAL_MS, DEFAULT_HEARTBEAT_INTERVAL_MS);
         long fetchIntervalMs = context.getLong(FETCH_INTERVAL_MS, DEFAULT_FETCH_INTERVAL_MS);
-        boolean fetchInOrder = context.getBoolean(FETCH_IN_ORDER_KEY, DEFAULT_FETCH_IN_ORDER);
-        int batchSize = context.getInteger(BATCH_SIZE_KEY, DEFAULT_BATCH_SIZE);
+        boolean fetchInOrder = context.getBoolean(FETCH_IN_ORDER, DEFAULT_FETCH_IN_ORDER);
+        int batchSize = context.getInteger(BATCH_SIZE, DEFAULT_BATCH_SIZE);
 
         if (StringUtils.isBlank(consumerGroup)) {
             LOG.info("Loghub Consumer Group is not specified, will generate a random Consumer Group name.");
@@ -98,9 +95,7 @@ public class LoghubSource extends AbstractSource implements
         config.setHeartBeatIntervalMillis(heartbeatIntervalMs);
         config.setConsumeInOrder(fetchInOrder);
         config.setDataFetchIntervalMillis(fetchIntervalMs);
-        String format = context.getString(FORMAT_KEY, DEFAULT_SOURCE_FORMAT);
-        serializer = createSerializer(format);
-        serializer.configure(context);
+        deserializer = createDeserializer(context);
     }
 
     private static String createConsumerGroupName() {
@@ -115,18 +110,27 @@ public class LoghubSource extends AbstractSource implements
         Preconditions.checkArgument(value != null && !value.isEmpty(), "Missing parameter: " + name);
     }
 
-    private static EventSerializer createSerializer(String format) {
-        if (StringUtils.isBlank(format)) {
-            LOG.info("Event format is not specified, will use default format {}", format);
-            format = DEFAULT_SOURCE_FORMAT;
-        }
-        if (format.equals(CSV_FORMAT)) {
-            return new CSVEventSerializer();
-        } else if (format.equals(JSON_FORMAT)) {
-            return new JSONEventSerializer();
+    private EventDeserializer createDeserializer(Context context) {
+        String deserializerName = context.getString(DESERIALIZER);
+        EventDeserializer deserializer;
+        if (deserializerName == null || deserializerName.isEmpty()) {
+            deserializer = new DelimitedTextEventDeserializer();
+        } else if (deserializerName.equals(DelimitedTextEventDeserializer.ALIAS)
+                || deserializerName.equalsIgnoreCase(DelimitedTextEventDeserializer.class.getName())) {
+            deserializer = new DelimitedTextEventDeserializer();
+        } else if (deserializerName.equals(JSONEventDeserializer.ALIAS)
+                || deserializerName.equalsIgnoreCase(JSONEventDeserializer.class.getName())) {
+            deserializer = new JSONEventDeserializer();
         } else {
-            throw new IllegalArgumentException("Unimplemented format for Loghub source: " + format);
+            try {
+                deserializer = (EventDeserializer) Class.forName(deserializerName).newInstance();
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Unable to instantiate serializer: " + deserializerName
+                        + " on sink: " + getName(), e);
+            }
         }
+        deserializer.configure(context);
+        return deserializer;
     }
 
     @Override
@@ -134,7 +138,7 @@ public class LoghubSource extends AbstractSource implements
         LOG.info("Starting Loghub source {}...", getName());
         try {
             worker = new ClientWorker(
-                    () -> new LogReceiver(getChannelProcessor(), serializer, counter, getName()), config);
+                    () -> new LogReceiver(getChannelProcessor(), deserializer, counter, getName()), config);
         } catch (Exception e) {
             throw new FlumeException("Fail to start log service client worker.", e);
         }

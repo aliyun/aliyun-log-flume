@@ -13,19 +13,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.aliyun.loghub.flume.Constants.DEFAULT_USER_RECORD_TIME;
 import static com.aliyun.loghub.flume.Constants.RECORD_TAG_PREFIX;
 import static com.aliyun.loghub.flume.Constants.RECORD_TIME_KEY;
-import static com.aliyun.loghub.flume.Constants.TIMESTAMP_HEADER;
-import static com.aliyun.loghub.flume.Constants.USER_RECORD_TIME_KEY;
+import static com.aliyun.loghub.flume.Constants.TIMESTAMP;
+import static com.aliyun.loghub.flume.Constants.USE_RECORD_TIME;
 
 
-public class JSONEventSerializer implements EventSerializer {
+public class JSONEventDeserializer implements EventDeserializer {
+    static final String ALIAS = "JSON";
 
     private boolean useRecordTime;
 
     @Override
-    public List<Event> serialize(FastLogGroup logGroup) {
+    public List<Event> deserialize(FastLogGroup logGroup) {
         int count = logGroup.getLogsCount();
         List<Event> events = new ArrayList<>(count);
         for (int idx = 0; idx < count; ++idx) {
@@ -42,7 +42,6 @@ public class JSONEventSerializer implements EventSerializer {
                 FastLogTag tag = logGroup.getLogTags(i);
                 jsonObject.put(RECORD_TAG_PREFIX + tag.getKey(), tag.getValue());
             }
-            Event event = EventBuilder.withBody(jsonObject.toJSONString().getBytes(charset));
             int recordTime = log.getTime();
             long timestamp;
             if (useRecordTime) {
@@ -50,7 +49,8 @@ public class JSONEventSerializer implements EventSerializer {
             } else {
                 timestamp = System.currentTimeMillis();
             }
-            event.setHeaders(Collections.singletonMap(TIMESTAMP_HEADER, String.valueOf(timestamp)));
+            Event event = EventBuilder.withBody(jsonObject.toJSONString(), charset,
+                    Collections.singletonMap(TIMESTAMP, String.valueOf(timestamp)));
             events.add(event);
         }
         return events;
@@ -58,6 +58,6 @@ public class JSONEventSerializer implements EventSerializer {
 
     @Override
     public void configure(Context context) {
-        useRecordTime = context.getBoolean(USER_RECORD_TIME_KEY, DEFAULT_USER_RECORD_TIME);
+        useRecordTime = context.getBoolean(USE_RECORD_TIME, false);
     }
 }

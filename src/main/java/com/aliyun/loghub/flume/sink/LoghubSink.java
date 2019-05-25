@@ -1,5 +1,6 @@
 package com.aliyun.loghub.flume.sink;
 
+import com.aliyun.loghub.flume.source.DelimitedTextEventDeserializer;
 import com.aliyun.openservices.aliyun.log.producer.LogProducer;
 import com.aliyun.openservices.aliyun.log.producer.Producer;
 import com.aliyun.openservices.aliyun.log.producer.ProducerConfig;
@@ -8,7 +9,6 @@ import com.aliyun.openservices.aliyun.log.producer.ProjectConfigs;
 import com.aliyun.openservices.aliyun.log.producer.Result;
 import com.aliyun.openservices.log.common.LogItem;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -26,16 +26,13 @@ import java.util.concurrent.Future;
 
 import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
 import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
-import static com.aliyun.loghub.flume.Constants.BATCH_SIZE_KEY;
-import static com.aliyun.loghub.flume.Constants.CSV_FORMAT;
+import static com.aliyun.loghub.flume.Constants.BATCH_SIZE;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_SINK_FORMAT;
 import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
-import static com.aliyun.loghub.flume.Constants.FORMAT_KEY;
 import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
 import static com.aliyun.loghub.flume.Constants.MAX_BUFFER_SIZE;
 import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
-import static com.aliyun.loghub.flume.Constants.STRING_FORMAT;
+import static com.aliyun.loghub.flume.Constants.SERIALIZER;
 
 public class LoghubSink extends AbstractSink implements Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(LoghubSink.class);
@@ -47,7 +44,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     private String project;
     private String logstore;
     private Producer producer;
-    private Converter<Event, LogItem> converter;
+    private EventSerializer serializer;
     private List<Future<Result>> producerFutures = new ArrayList<>();
 
     @Override
@@ -88,9 +85,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
                     break;
                 }
                 counter.incrementEventDrainAttemptCount();
-                LOG.debug("event #{}", processedEvents);
-                buffer.add(converter.convert(event));
-
+                buffer.add(serializer.serialize(event));
                 if (buffer.size() >= bufferSize) {
                     producerFutures.add(producer.send(project, logstore, buffer));
                     buffer.clear();
@@ -143,28 +138,36 @@ public class LoghubSink extends AbstractSink implements Configurable {
         if (counter == null) {
             counter = new SinkCounter(getName());
         }
-        batchSize = context.getInteger(BATCH_SIZE_KEY, DEFAULT_BATCH_SIZE);
+        batchSize = context.getInteger(BATCH_SIZE, DEFAULT_BATCH_SIZE);
         bufferSize = context.getInteger(MAX_BUFFER_SIZE, 1000);
-        String format = context.getString(FORMAT_KEY);
-        converter = createConverter(format);
-        converter.configure(context);
+        serializer = createSerializer(context);
     }
 
     private static void ensureNotEmpty(String value, String name) {
         Preconditions.checkArgument(value != null && !value.isEmpty(), "Missing parameter: " + name);
     }
 
-    private static Converter<Event, LogItem> createConverter(String format) {
-        if (StringUtils.isBlank(format)) {
-            format = DEFAULT_SINK_FORMAT;
-        }
-        if (format.equals(STRING_FORMAT)) {
-            return new StringEventConverter();
-        } else if (format.equals(CSV_FORMAT)) {
-            return new CSVEventConverter();
+    private EventSerializer createSerializer(Context context) {
+        String serializerName = context.getString(SERIALIZER);
+        EventSerializer serializer;
+        if (serializerName == null || serializerName.isEmpty()) {
+            serializer = new DelimitedTextEventSerializer();
+        } else if (serializerName.equals(DelimitedTextEventSerializer.ALIAS)
+                || serializerName.equalsIgnoreCase(DelimitedTextEventDeserializer.class.getName())) {
+            serializer = new DelimitedTextEventSerializer();
+        } else if (serializerName.equals(SimpleEventSerializer.ALIAS)
+                || serializerName.equalsIgnoreCase(SimpleEventSerializer.class.getName())) {
+            serializer = new SimpleEventSerializer();
         } else {
-            throw new RuntimeException("Unimplemented format for Loghub sink: " + format);
+            try {
+                serializer = (EventSerializer) Class.forName(serializerName).newInstance();
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Unable to instantiate serializer: " + serializerName
+                        + " on sink: " + getName(), e);
+            }
         }
+        serializer.configure(context);
+        return serializer;
     }
 
     @Override

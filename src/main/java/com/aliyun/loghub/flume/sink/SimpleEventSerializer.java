@@ -6,8 +6,9 @@ import org.apache.flume.Event;
 
 import java.nio.charset.StandardCharsets;
 
-public class StringEventConverter implements Converter<Event, LogItem> {
+public class SimpleEventSerializer implements EventSerializer {
 
+    static final String ALIAS = "SIMPLE";
 
     @Override
     public void configure(Context context) {
@@ -15,7 +16,7 @@ public class StringEventConverter implements Converter<Event, LogItem> {
     }
 
     @Override
-    public LogItem convert(Event event) {
+    public LogItem serialize(Event event) {
         LogItem item = new LogItem();
         item.PushBack("body", new String(event.getBody(), StandardCharsets.UTF_8));
         return item;

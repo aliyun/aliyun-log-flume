@@ -23,30 +23,26 @@ public class Constants {
      */
     public static final String FETCH_INTERVAL_MS = "fetchIntervalMs";
 
-    public static final String USER_RECORD_TIME_KEY = "useRecordTime";
-    public static final boolean DEFAULT_USER_RECORD_TIME = false;
+    public static final String USE_RECORD_TIME = "useRecordTime";
     public static final long DEFAULT_HEARTBEAT_INTERVAL_MS = 30000L;
     public static final long DEFAULT_FETCH_INTERVAL_MS = 100L;
-    public static final String FETCH_IN_ORDER_KEY = "fetchInOrder";
+    public static final String FETCH_IN_ORDER = "fetchInOrder";
     public static final boolean DEFAULT_FETCH_IN_ORDER = false;
-    public static final String BATCH_SIZE_KEY = "batchSize";
+    public static final String BATCH_SIZE = "batchSize";
     public static final int DEFAULT_BATCH_SIZE = 1000;
 
     public static final String MAX_BUFFER_SIZE = "maxBufferSize";
 
-    public static final String FORMAT_KEY = "format";
-    public static final String CSV_FORMAT = "csv";
-    public static final String JSON_FORMAT = "json";
-    public static final String STRING_FORMAT = "string";
+    public static final String SERIALIZER = "serializer";
+    public static final String DESERIALIZER = "deserializer";
+    public static final String COLUMNS = "columns";
+    public static final String SEPARATOR_CHAR = "separatorChar";
+    public static final String QUOTE_CHAR = "quoteChar";
+    public static final String ESCAPE_CHAR = "escapeChar";
+    public static final String LINE_END = "lineEnd";
+    public static final String APPEND_TIMESTAMP = "appendTimestamp";
 
-    public static final String DEFAULT_SOURCE_FORMAT = "csv";
-    public static final String DEFAULT_SINK_FORMAT = "string";
-
-    public static final String COLUMNS_KEY = "columns";
-    public static final String SEPARATOR_KEY = "separator";
-    public static final String QUOTE_KEY = "quote";
-
-    public static final String TIMESTAMP_HEADER = "timestamp";
+    public static final String TIMESTAMP = "timestamp";
     public static final String RECORD_TIME_KEY = "__time__";
     public static final String RECORD_TAG_PREFIX = "__tag__:";
 }
