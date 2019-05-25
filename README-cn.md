@@ -38,8 +38,8 @@ ElasticSearch等，初次之外对于常见的数据源在社区也都能找到�
 |serializer| Event序列化格式，支持DELIMITED, SIMPLE,或者自定义serializer，如果是自定义serializer，此处填完整类名称 |SIMPLE | N |
 |columns| serializer为DELIMITED时，必须指定字段列表，用逗号分隔，顺序与实际的数据中字段顺序一致。| | N |
 |separatorChar| serializer为DELIMITED时，用于指定数据的分隔符，必须为单个字符|, | N |
-|quoteChar| serializer为DELIMITED时，用于指定Quote字符 |“ | N |
-|escapeChar| serializer为DELIMITED时，用于指定转义字符 | “ | N |
+|quoteChar| serializer为DELIMITED时，用于指定Quote字符 |" | N |
+|escapeChar| serializer为DELIMITED时，用于指定转义字符 | " | N |
 |useRecordTime| 是否使用数据中的timestamp字段作为日志时间| false| N |
 
 #### Loghub Source
@@ -67,7 +67,7 @@ ElasticSearch等，初次之外对于常见的数据源在社区也都能找到�
 |deserializer| Event反序列化格式，支持DELIMITED, JSON,或者自定义deserializer，如果是自定义deserializer，此处填完整类名称 |DELIMITED | Y |
 |columns| deserializer为DELIMITED时，必须指定字段列表，用逗号分隔，顺序与实际的数据中字段顺序一致。| | N |
 |separatorChar| deserializer为DELIMITED时，用于指定数据的分隔符，必须为单个字符|, | N |
-|quoteChar| deserializer为DELIMITED时，用于指定Quote字符 |“ | N |
-|escapeChar| deserializer为DELIMITED时，用于指定转义字符 | “ | N |
+|quoteChar| deserializer为DELIMITED时，用于指定Quote字符 |" | N |
+|escapeChar| deserializer为DELIMITED时，用于指定转义字符 | " | N |
 |appendTimestamp| deserializer为DELIMITED时，是否将时间戳作为一个字段append到每行末位 | false | N |
 |useRecordTime| 是否使用日志的时间，用于Event header中指定时间戳，如果为false则使用系统时间| false| N |
