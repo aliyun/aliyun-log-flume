@@ -70,5 +70,5 @@ aliyun-log-flume 为Loghub 实现了Sink和Source 插件。
 |separatorChar| deserializer为DELIMITED时，用于指定数据的分隔符，必须为单个字符|, | N |
 |quoteChar| deserializer为DELIMITED时，用于指定Quote字符 |" | N |
 |escapeChar| deserializer为DELIMITED时，用于指定转义字符 | " | N |
-|appendTimestamp| deserializer为DELIMITED时，是否将时间戳作为一个字段append到每行末位 | false | N |
+|appendTimestamp| deserializer为DELIMITED时，是否将时间戳作为一个字段自动添加到每行末尾 | false | N |
 |useRecordTime| 是否使用日志的时间，用于Event header中指定时间戳，如果为false则使用系统时间| false| N |
