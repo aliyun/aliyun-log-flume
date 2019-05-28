@@ -106,7 +106,7 @@ public class LoghubSource extends AbstractSource implements
 
     private static String createConsumerGroupName() {
         try {
-            return InetAddress.getLocalHost().getCanonicalHostName() + ":" + UUID.randomUUID();
+            return InetAddress.getLocalHost().getHostName().replace('.', '-') + "-" + UUID.randomUUID();
         } catch (UnknownHostException e) {
             return UUID.randomUUID().toString();
         }
