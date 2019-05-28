@@ -42,12 +42,12 @@ agent.sources.netcatsource.bind = localhost
 agent.sources.netcatsource.port = 44444
 
 # Describe the sink:
-agent.sources.slssrc.type = com.aliyun.loghub.flume.sink.LoghubSink
-agent.sources.slssrc.endpoint = <Your Loghub endpoint>
-agent.sources.slssrc.project = <Your Loghub project>
-agent.sources.slssrc.logstore = <Your Loghub logstore>
-agent.sources.slssrc.accessKeyId = <Your Accesss Key Id>
-agent.sources.slssrc.accessKey = <Your Access Key>
+agent.sinks.slssink.type = com.aliyun.loghub.flume.sink.LoghubSink
+agent.sinks.slssink.endpoint = <Your Loghub endpoint>
+agent.sinks.slssink.project = <Your Loghub project>
+agent.sinks.slssink.logstore = <Your Loghub logstore>
+agent.sinks.slssink.accessKeyId = <Your Accesss Key Id>
+agent.sinks.slssink.accessKey = <Your Access Key>
 
 
 # Configure a channel that buffers events in memory:
@@ -63,7 +63,7 @@ agent.sinks.slssink.channel = memoryChannel
 #### Source example
 Ingesting data from Loghub and save to HDFS:
 ```
-agent.sources = slssource
+agent.sources = slssrc
 agent.sinks = hdfssink
 agent.channels = memoryChannel
 
@@ -75,7 +75,7 @@ agent.sources.slssrc.logstore = <Your Loghub logstore>
 agent.sources.slssrc.accessKeyId = <Your Accesss Key Id>
 agent.sources.slssrc.accessKey = <Your Access Key>
 agent.sources.slssrc.columns = <expected clomuns in order>
-agent.sources.slssrc.seperator = ,
+agent.sources.slssrc.separatorChar = ,
 
 # Describe the sink:
 agent.sinks.hdfssink.type = hdfs
