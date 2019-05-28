@@ -1,5 +1,7 @@
 package com.aliyun.loghub.flume.source;
 
+import com.aliyun.loghub.flume.internal.RetryContext;
+import com.aliyun.loghub.flume.internal.RetryPolicy;
 import com.aliyun.openservices.log.common.FastLogGroup;
 import com.aliyun.openservices.log.common.LogGroupData;
 import com.aliyun.openservices.loghub.client.ILogHubCheckPointTracker;
@@ -22,6 +24,7 @@ class LogReceiver implements ILogHubProcessor {
 
     private final ChannelProcessor processor;
     private final EventDeserializer deserializer;
+    private final RetryPolicy retryPolicy;
     private final SourceCounter sourceCounter;
     private final String sourceName;
 
@@ -30,10 +33,12 @@ class LogReceiver implements ILogHubProcessor {
 
     LogReceiver(ChannelProcessor processor,
                 EventDeserializer deserializer,
+                RetryPolicy retryPolicy,
                 SourceCounter sourceCounter,
                 String sourceName) {
         this.processor = processor;
         this.deserializer = deserializer;
+        this.retryPolicy = retryPolicy;
         this.sourceCounter = sourceCounter;
         this.sourceName = sourceName;
     }
@@ -46,6 +51,7 @@ class LogReceiver implements ILogHubProcessor {
 
     @Override
     public String process(List<LogGroupData> logGroups, ILogHubCheckPointTracker tracker) {
+        RetryContext context = new RetryContext();
         for (LogGroupData data : logGroups) {
             FastLogGroup logGroup = data.GetFastLogGroup();
             List<Event> events = deserializer.deserialize(logGroup);
@@ -55,7 +61,9 @@ class LogReceiver implements ILogHubProcessor {
             if (numberOfEvents == 0) {
                 continue;
             }
-            for (int i = 0; i < 10; i++) {
+            context.reset();
+            while (true) {
+                Exception exception;
                 try {
                     long beginTime = System.currentTimeMillis();
                     processor.processEventBatch(events);
@@ -64,11 +72,21 @@ class LogReceiver implements ILogHubProcessor {
                     LOG.debug("Processed {} events, elapsedTime {}", numberOfEvents, elapsedTime);
                     break;
                 } catch (final Exception ex) {
-                    LOG.error("{} - Exception thrown while processing events", sourceName, ex);
+                    exception = ex;
                 }
-                LOG.info("Retrying {}/10", i + 1);
+                if (!retryPolicy.shouldRetry(context)) {
+                    LOG.error("{} - Exception thrown while processing events", sourceName, exception);
+                    break;
+                }
+                long backoffMs = retryPolicy.getBackoffMs(context);
+                LOG.warn("Failed to emit events to channel: {}, wait {} ms before next attempt",
+                        exception.getMessage(), backoffMs);
+                context.incrementRetryCount();
+                if (backoffMs <= 0) {
+                    continue;
+                }
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(backoffMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     // Do not save checkpoint!

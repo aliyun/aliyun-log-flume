@@ -1,5 +1,9 @@
 package com.aliyun.loghub.flume.source;
 
+import com.aliyun.loghub.flume.internal.ExponentialRetry;
+import com.aliyun.loghub.flume.internal.LinearRetry;
+import com.aliyun.loghub.flume.internal.NoRetry;
+import com.aliyun.loghub.flume.internal.RetryPolicy;
 import com.aliyun.openservices.loghub.client.ClientWorker;
 import com.aliyun.openservices.loghub.client.config.LogHubConfig;
 import com.aliyun.openservices.loghub.client.config.LogHubConfig.ConsumePosition;
@@ -47,11 +51,13 @@ public class LoghubSource extends AbstractSource implements
     private ClientWorker worker;
     private SourceCounter counter;
     private EventDeserializer deserializer;
+    private RetryPolicy retryPolicy;
 
     @Override
     public void configure(Context context) {
         config = parseConsumerConfig(context);
         deserializer = createDeserializer(context);
+        retryPolicy = makeRetryPolicy(context);
     }
 
     private static LogHubConfig parseConsumerConfig(Context context) {
@@ -132,11 +138,37 @@ public class LoghubSource extends AbstractSource implements
                 deserializer = (EventDeserializer) Class.forName(deserializerName).newInstance();
             } catch (Exception e) {
                 throw new IllegalArgumentException("Unable to instantiate serializer: " + deserializerName
-                        + " on sink: " + getName(), e);
+                        + " on source: " + getName(), e);
             }
         }
         deserializer.configure(context);
         return deserializer;
+    }
+
+    private RetryPolicy makeRetryPolicy(Context context) {
+        String policy = context.getString("retryPolicy");
+        RetryPolicy retryPolicy;
+        if (policy == null || policy.isEmpty()) {
+            retryPolicy = new LinearRetry();
+        } else if (policy.equals(LinearRetry.ALIAS)
+                || policy.equalsIgnoreCase(LinearRetry.class.getName())) {
+            retryPolicy = new LinearRetry();
+        } else if (policy.equals(ExponentialRetry.ALIAS)
+                || policy.equalsIgnoreCase(ExponentialRetry.class.getName())) {
+            retryPolicy = new ExponentialRetry();
+        } else if (policy.equals(NoRetry.ALIAS)
+                || policy.equals(NoRetry.class.getName())) {
+            retryPolicy = new NoRetry();
+        } else {
+            try {
+                retryPolicy = (RetryPolicy) Class.forName(policy).newInstance();
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Unable to instantiate retryPolicy: " + policy
+                        + " on source: " + getName(), e);
+            }
+        }
+        retryPolicy.configure(context);
+        return retryPolicy;
     }
 
     @Override
