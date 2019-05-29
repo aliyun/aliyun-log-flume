@@ -44,6 +44,7 @@ public class Constants {
     public static final String TAG_AS_FIELD = "tagAsField";
     public static final String SOURCE_AS_FIELD = "sourceAsField";
 
+    public static final String AUTO_DETECT_JSON_FIELDS = "autoDetectJSONFields";
     public static final String TIMESTAMP = "timestamp";
     public static final String RECORD_TIME_KEY = "__time__";
     public static final String RECORD_TAG_PREFIX = "__tag__:";
