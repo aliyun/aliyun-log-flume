@@ -38,23 +38,23 @@ public class JSONEventDeserializer implements EventDeserializer {
         for (int idx = 0; idx < count; ++idx) {
             FastLog log = logGroup.getLogs(idx);
             int fieldCount = log.getContentsCount();
-            JSONObject jsonObject = new JSONObject(fieldCount);
+            JSONObject record = new JSONObject(fieldCount);
             for (int i = 0; i < fieldCount; i++) {
                 FastLogContent content = log.getContents(i);
-                jsonObject.put(content.getKey(), content.getValue());
+                record.put(content.getKey(), content.getValue());
             }
             if (timeAsField) {
-                jsonObject.put(RECORD_TIME_KEY, String.valueOf(log.getTime()));
+                record.put(RECORD_TIME_KEY, String.valueOf(log.getTime()));
             }
             if (tagAsField) {
                 int tagCount = logGroup.getLogTagsCount();
                 for (int i = 0; i < tagCount; i++) {
                     FastLogTag tag = logGroup.getLogTags(i);
-                    jsonObject.put(RECORD_TAG_PREFIX + tag.getKey(), tag.getValue());
+                    record.put(RECORD_TAG_PREFIX + tag.getKey(), tag.getValue());
                 }
             }
             if (sourceAsField) {
-                jsonObject.put(RECORD_SOURCE_KEY, logGroup.getSource());
+                record.put(RECORD_SOURCE_KEY, logGroup.getSource());
             }
             int recordTime = log.getTime();
             long timestamp;
@@ -63,7 +63,7 @@ public class JSONEventDeserializer implements EventDeserializer {
             } else {
                 timestamp = System.currentTimeMillis();
             }
-            Event event = EventBuilder.withBody(jsonObject.toJSONString(), charset,
+            Event event = EventBuilder.withBody(record.toJSONString(), charset,
                     Collections.singletonMap(TIMESTAMP, String.valueOf(timestamp)));
             events.add(event);
         }
