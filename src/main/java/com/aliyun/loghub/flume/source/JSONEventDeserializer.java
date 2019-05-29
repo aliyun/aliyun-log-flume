@@ -13,9 +13,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.aliyun.loghub.flume.Constants.RECORD_SOURCE_KEY;
 import static com.aliyun.loghub.flume.Constants.RECORD_TAG_PREFIX;
 import static com.aliyun.loghub.flume.Constants.RECORD_TIME_KEY;
+import static com.aliyun.loghub.flume.Constants.SOURCE_AS_FIELD;
+import static com.aliyun.loghub.flume.Constants.TAG_AS_FIELD;
 import static com.aliyun.loghub.flume.Constants.TIMESTAMP;
+import static com.aliyun.loghub.flume.Constants.TIME_AS_FIELD;
 import static com.aliyun.loghub.flume.Constants.USE_RECORD_TIME;
 
 
@@ -23,6 +27,9 @@ public class JSONEventDeserializer implements EventDeserializer {
     static final String ALIAS = "JSON";
 
     private boolean useRecordTime;
+    private boolean sourceAsField;
+    private boolean tagAsField;
+    private boolean timeAsField;
 
     @Override
     public List<Event> deserialize(FastLogGroup logGroup) {
@@ -36,11 +43,18 @@ public class JSONEventDeserializer implements EventDeserializer {
                 FastLogContent content = log.getContents(i);
                 jsonObject.put(content.getKey(), content.getValue());
             }
-            jsonObject.put(RECORD_TIME_KEY, "" + log.getTime());
-            int tagCount = logGroup.getLogTagsCount();
-            for (int i = 0; i < tagCount; i++) {
-                FastLogTag tag = logGroup.getLogTags(i);
-                jsonObject.put(RECORD_TAG_PREFIX + tag.getKey(), tag.getValue());
+            if (timeAsField) {
+                jsonObject.put(RECORD_TIME_KEY, String.valueOf(log.getTime()));
+            }
+            if (tagAsField) {
+                int tagCount = logGroup.getLogTagsCount();
+                for (int i = 0; i < tagCount; i++) {
+                    FastLogTag tag = logGroup.getLogTags(i);
+                    jsonObject.put(RECORD_TAG_PREFIX + tag.getKey(), tag.getValue());
+                }
+            }
+            if (sourceAsField) {
+                jsonObject.put(RECORD_SOURCE_KEY, logGroup.getSource());
             }
             int recordTime = log.getTime();
             long timestamp;
@@ -59,5 +73,8 @@ public class JSONEventDeserializer implements EventDeserializer {
     @Override
     public void configure(Context context) {
         useRecordTime = context.getBoolean(USE_RECORD_TIME, false);
+        sourceAsField = context.getBoolean(SOURCE_AS_FIELD, false);
+        tagAsField = context.getBoolean(TAG_AS_FIELD, false);
+        timeAsField = context.getBoolean(TIME_AS_FIELD, false);
     }
 }

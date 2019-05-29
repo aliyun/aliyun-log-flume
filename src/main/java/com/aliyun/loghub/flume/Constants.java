@@ -40,8 +40,12 @@ public class Constants {
     public static final String ESCAPE_CHAR = "escapeChar";
     public static final String LINE_END = "lineEnd";
     public static final String APPEND_TIMESTAMP = "appendTimestamp";
+    public static final String TIME_AS_FIELD = "timeAsField";
+    public static final String TAG_AS_FIELD = "tagAsField";
+    public static final String SOURCE_AS_FIELD = "sourceAsField";
 
     public static final String TIMESTAMP = "timestamp";
     public static final String RECORD_TIME_KEY = "__time__";
     public static final String RECORD_TAG_PREFIX = "__tag__:";
+    public static final String RECORD_SOURCE_KEY = "__source__";
 }
