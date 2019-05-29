@@ -176,7 +176,7 @@ public class LoghubSource extends AbstractSource implements
         LOG.info("Starting Loghub source {}...", getName());
         try {
             worker = new ClientWorker(
-                    () -> new LogReceiver(getChannelProcessor(), deserializer, counter, getName()), config);
+                    () -> new LogReceiver(getChannelProcessor(), deserializer, retryPolicy, counter, getName()), config);
         } catch (Exception e) {
             throw new FlumeException("Fail to start log service client worker.", e);
         }
