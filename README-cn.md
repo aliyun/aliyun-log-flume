@@ -71,4 +71,7 @@ aliyun-log-flume 为Loghub 实现了Sink和Source 插件。
 |quoteChar| deserializer为DELIMITED时，用于指定Quote字符 |" | N |
 |escapeChar| deserializer为DELIMITED时，用于指定转义字符 | " | N |
 |appendTimestamp| deserializer为DELIMITED时，是否将时间戳作为一个字段自动添加到每行末尾 | false | N |
+|sourceAsField| deserializer为JSON时，是否将日志Source作为一个字段，字段名称为__source__ |false | N |
+|tagAsField| deserializer为JSON时，是否将日志Tag作为字段，字段名称为__tag__:{tag名称}| false | N |
+|timeAsField| deserializer为JSON时，是否将日志时间作为一个字段，字段名称为__time__ | false | N |
 |useRecordTime| 是否使用日志的时间，用于Event header中指定时间戳，如果为false则使用系统时间| false| N |
