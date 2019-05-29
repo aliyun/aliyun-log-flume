@@ -150,14 +150,14 @@ public class LoghubSource extends AbstractSource implements
         RetryPolicy retryPolicy;
         if (policy == null || policy.isEmpty()) {
             retryPolicy = new LinearRetry();
-        } else if (policy.equals(LinearRetry.ALIAS)
+        } else if (policy.equalsIgnoreCase(LinearRetry.ALIAS)
                 || policy.equalsIgnoreCase(LinearRetry.class.getName())) {
             retryPolicy = new LinearRetry();
-        } else if (policy.equals(ExponentialRetry.ALIAS)
+        } else if (policy.equalsIgnoreCase(ExponentialRetry.ALIAS)
                 || policy.equalsIgnoreCase(ExponentialRetry.class.getName())) {
             retryPolicy = new ExponentialRetry();
-        } else if (policy.equals(NoRetry.ALIAS)
-                || policy.equals(NoRetry.class.getName())) {
+        } else if (policy.equalsIgnoreCase(NoRetry.ALIAS)
+                || policy.equalsIgnoreCase(NoRetry.class.getName())) {
             retryPolicy = new NoRetry();
         } else {
             try {
