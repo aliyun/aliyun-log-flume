@@ -1,9 +1,8 @@
 package com.aliyun.loghub.flume.internal;
 
 import org.apache.flume.Context;
-import org.apache.flume.conf.Configurable;
 
-public class LinearRetry implements RetryPolicy, Configurable {
+public class LinearRetry implements RetryPolicy {
 
     public static final String ALIAS = "Linear";
 

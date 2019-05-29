@@ -1,9 +1,8 @@
 package com.aliyun.loghub.flume.internal;
 
 import org.apache.flume.Context;
-import org.apache.flume.conf.Configurable;
 
-public class ExponentialRetry implements RetryPolicy, Configurable {
+public class ExponentialRetry implements RetryPolicy {
 
     public static final String ALIAS = "Exponential";
 
