@@ -7,6 +7,7 @@ import com.aliyun.openservices.log.common.FastLog;
 import com.aliyun.openservices.log.common.FastLogContent;
 import com.aliyun.openservices.log.common.FastLogGroup;
 import com.aliyun.openservices.log.common.FastLogTag;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.event.EventBuilder;
@@ -36,7 +37,7 @@ public class JSONEventDeserializer implements EventDeserializer {
     private boolean autoDetectJSONFields;
 
 
-    private static boolean mayBeJSON(String string) {
+    static boolean mayBeJSON(String string) {
 //        if (string == null) {
 //            return false;
 //        } else if ("null".equals(string)) {
@@ -63,6 +64,10 @@ public class JSONEventDeserializer implements EventDeserializer {
                 || (string.startsWith("[") && string.endsWith("]")) || (string.startsWith("{") && string.endsWith("}")));
     }
 
+    static Object parseJSONObjectOrArray(String string) {
+        return JSON.parse(string);
+    }
+
     @Override
     public List<Event> deserialize(FastLogGroup logGroup) {
         int count = logGroup.getLogsCount();
@@ -77,8 +82,7 @@ public class JSONEventDeserializer implements EventDeserializer {
                 final String key = content.getKey();
                 if (autoDetectJSONFields && mayBeJSON(value)) {
                     try {
-                        JSONObject jsonObject = JSON.parseObject(value);
-                        record.put(key, jsonObject);
+                        record.put(key, parseJSONObjectOrArray(value));
                     } catch (JSONException jex) {
                         record.put(key, value);
                     }
