@@ -131,8 +131,8 @@ public class LoghubSource extends AbstractSource implements
             try {
                 deserializer = (EventDeserializer) Class.forName(deserializerName).newInstance();
             } catch (Exception e) {
-                throw new IllegalArgumentException("Unable to instantiate serializer: " + deserializerName
-                        + " on sink: " + getName(), e);
+                throw new IllegalArgumentException("Unable to instantiate deserializer: " + deserializerName
+                        + " on source: " + getName(), e);
             }
         }
         deserializer.configure(context);

@@ -7,7 +7,6 @@ import com.aliyun.openservices.log.common.FastLog;
 import com.aliyun.openservices.log.common.FastLogContent;
 import com.aliyun.openservices.log.common.FastLogGroup;
 import com.aliyun.openservices.log.common.FastLogTag;
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.event.EventBuilder;
@@ -68,41 +67,46 @@ public class JSONEventDeserializer implements EventDeserializer {
         return JSON.parse(string);
     }
 
+    private String convertLogToJSONString(FastLogGroup logGroup, FastLog log) {
+        int fieldCount = log.getContentsCount();
+        JSONObject record = new JSONObject(fieldCount);
+        for (int i = 0; i < fieldCount; i++) {
+            FastLogContent content = log.getContents(i);
+            final String value = content.getValue();
+            final String key = content.getKey();
+            if (autoDetectJSONFields && mayBeJSON(value)) {
+                try {
+                    record.put(key, parseJSONObjectOrArray(value));
+                } catch (JSONException jex) {
+                    record.put(key, value);
+                }
+            } else {
+                record.put(key, value);
+            }
+        }
+        if (timeAsField) {
+            record.put(RECORD_TIME_KEY, String.valueOf(log.getTime()));
+        }
+        if (tagAsField) {
+            int tagCount = logGroup.getLogTagsCount();
+            for (int i = 0; i < tagCount; i++) {
+                FastLogTag tag = logGroup.getLogTags(i);
+                record.put(RECORD_TAG_PREFIX + tag.getKey(), tag.getValue());
+            }
+        }
+        if (sourceAsField) {
+            record.put(RECORD_SOURCE_KEY, logGroup.getSource());
+        }
+        return record.toJSONString();
+    }
+
     @Override
     public List<Event> deserialize(FastLogGroup logGroup) {
         int count = logGroup.getLogsCount();
         List<Event> events = new ArrayList<>(count);
         for (int idx = 0; idx < count; ++idx) {
             FastLog log = logGroup.getLogs(idx);
-            int fieldCount = log.getContentsCount();
-            JSONObject record = new JSONObject(fieldCount);
-            for (int i = 0; i < fieldCount; i++) {
-                FastLogContent content = log.getContents(i);
-                final String value = content.getValue();
-                final String key = content.getKey();
-                if (autoDetectJSONFields && mayBeJSON(value)) {
-                    try {
-                        record.put(key, parseJSONObjectOrArray(value));
-                    } catch (JSONException jex) {
-                        record.put(key, value);
-                    }
-                } else {
-                    record.put(key, value);
-                }
-            }
-            if (timeAsField) {
-                record.put(RECORD_TIME_KEY, String.valueOf(log.getTime()));
-            }
-            if (tagAsField) {
-                int tagCount = logGroup.getLogTagsCount();
-                for (int i = 0; i < tagCount; i++) {
-                    FastLogTag tag = logGroup.getLogTags(i);
-                    record.put(RECORD_TAG_PREFIX + tag.getKey(), tag.getValue());
-                }
-            }
-            if (sourceAsField) {
-                record.put(RECORD_SOURCE_KEY, logGroup.getSource());
-            }
+            String logAsJSON = convertLogToJSONString(logGroup, log);
             int recordTime = log.getTime();
             long timestamp;
             if (useRecordTime) {
@@ -110,7 +114,7 @@ public class JSONEventDeserializer implements EventDeserializer {
             } else {
                 timestamp = System.currentTimeMillis();
             }
-            Event event = EventBuilder.withBody(record.toJSONString(), charset,
+            Event event = EventBuilder.withBody(logAsJSON, charset,
                     Collections.singletonMap(TIMESTAMP, String.valueOf(timestamp)));
             events.add(event);
         }
