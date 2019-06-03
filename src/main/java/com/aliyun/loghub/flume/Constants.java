@@ -49,4 +49,7 @@ public class Constants {
     public static final String RECORD_TIME_KEY = "__time__";
     public static final String RECORD_TAG_PREFIX = "__tag__:";
     public static final String RECORD_SOURCE_KEY = "__source__";
+
+    public static final String APPEND_LOCAL_TIME = "appendLocalTime";
+    public static final String LOCAL_TIME_FIELD_NAME = "localTimeFieldName";
 }

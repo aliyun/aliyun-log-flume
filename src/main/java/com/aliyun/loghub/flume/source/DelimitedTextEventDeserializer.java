@@ -20,10 +20,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.aliyun.loghub.flume.Constants.APPEND_LOCAL_TIME;
 import static com.aliyun.loghub.flume.Constants.APPEND_TIMESTAMP;
 import static com.aliyun.loghub.flume.Constants.COLUMNS;
 import static com.aliyun.loghub.flume.Constants.ESCAPE_CHAR;
 import static com.aliyun.loghub.flume.Constants.LINE_END;
+import static com.aliyun.loghub.flume.Constants.LOCAL_TIME_FIELD_NAME;
 import static com.aliyun.loghub.flume.Constants.QUOTE_CHAR;
 import static com.aliyun.loghub.flume.Constants.SEPARATOR_CHAR;
 import static com.aliyun.loghub.flume.Constants.TIMESTAMP;
@@ -44,6 +46,9 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
     private String lineEnd;
 
     private static final String DEFAULT_LINE_END = "";
+
+    private boolean appendLocalTime;
+    private int localTimeIndex = 0;
 
     @Override
     public List<Event> deserialize(FastLogGroup logGroup) {
@@ -73,15 +78,18 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
                 }
             }
             int recordTime = log.getTime();
-            long timestamp;
+            String localTime = String.valueOf(System.currentTimeMillis());
+            String timestamp;
             if (useRecordTime) {
-                timestamp = ((long) recordTime) * 1000;
+                timestamp = String.valueOf(((long) recordTime) * 1000);
             } else {
-                timestamp = System.currentTimeMillis();
+                timestamp = localTime;
             }
-            String timestampText = String.valueOf(timestamp);
             if (appendTimestamp) {
-                record[width - 1] = timestampText;
+                record[width - 1] = timestamp;
+            }
+            if (appendLocalTime) {
+                record[localTimeIndex] = localTime;
             }
             csvWriter.writeNext(record, false);
             try {
@@ -90,7 +98,7 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
                 throw new FlumeException("Failed to flush writer", ex);
             }
             Event event = EventBuilder.withBody(writer.toString(), charset,
-                    Collections.singletonMap(TIMESTAMP, timestampText));
+                    Collections.singletonMap(TIMESTAMP, timestamp));
             events.add(event);
             for (int i = 0; i < width; i++) {
                 record[i] = null;
@@ -130,6 +138,17 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
         fieldIndexMapping = new HashMap<>(width);
         for (int i = 0; i < width; i++) {
             fieldIndexMapping.put(fields[i], i);
+        }
+        appendLocalTime = context.getBoolean(APPEND_LOCAL_TIME, false);
+        if (appendLocalTime) {
+            String localTimeFieldName = context.getString(LOCAL_TIME_FIELD_NAME);
+            if (StringUtils.isBlank(localTimeFieldName)) {
+                throw new IllegalArgumentException("Missing parameter: " + LOCAL_TIME_FIELD_NAME);
+            }
+            if (!fieldIndexMapping.containsKey(localTimeFieldName)) {
+                throw new IllegalArgumentException("Field '" + localTimeFieldName + "' not exist in columns");
+            }
+            localTimeIndex = fieldIndexMapping.get(localTimeFieldName);
         }
     }
 }
