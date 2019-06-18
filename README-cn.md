@@ -64,7 +64,7 @@ aliyun-log-flume 为Loghub 实现了Sink和Source 插件。
 |heartbeatIntervalMs| 客户端和Loghub的心跳间隔，单位毫秒|30000 | N |
 |fetchIntervalMs| Loghub数据拉取间隔，单位毫秒|100 | N |
 |fetchInOrder| 是否按顺序消费|false | N |
-|batchSize| 拉取批量大小 |1000 | N |
+|batchSize| 拉取批量大小 |100 | N |
 |consumerGroup| 拉取的消费组名称 | 随机产生 | N |
 |initialPosition| 拉取起点位置，支持begin, end, timestamp。注意：如果服务端已经存在checkpoint，会优先使用服务端的checkpoint|begin | N |
 |timestamp| 当我initialPosition为timestamp时，必须指定时间戳，Unix时间戳格式 | | N |
