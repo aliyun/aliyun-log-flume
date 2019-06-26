@@ -5,6 +5,7 @@ import com.aliyun.openservices.log.common.LogGroupData;
 import com.aliyun.openservices.loghub.client.ILogHubCheckPointTracker;
 import com.aliyun.openservices.loghub.client.exceptions.LogHubCheckPointException;
 import com.aliyun.openservices.loghub.client.interfaces.ILogHubProcessor;
+import org.apache.flume.ChannelFullException;
 import org.apache.flume.Event;
 import org.apache.flume.channel.ChannelProcessor;
 import org.apache.flume.instrumentation.SourceCounter;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * Receives logs from Loghub and send to Flume channel.
@@ -27,6 +29,9 @@ class LogReceiver implements ILogHubProcessor {
 
     private int shardId = 0;
     private long checkpointSavedAt = 0;
+    private Random random;
+    private volatile boolean running;
+    private volatile boolean success;
 
     LogReceiver(ChannelProcessor processor,
                 EventDeserializer deserializer,
@@ -36,6 +41,9 @@ class LogReceiver implements ILogHubProcessor {
         this.deserializer = deserializer;
         this.sourceCounter = sourceCounter;
         this.sourceName = sourceName;
+        this.random = new Random();
+        this.running = true;
+        this.success = true;
     }
 
     @Override
@@ -55,29 +63,45 @@ class LogReceiver implements ILogHubProcessor {
             if (numberOfEvents == 0) {
                 continue;
             }
-            for (int i = 0; i < 10; i++) {
+            int maxRetry = 32;
+            int retry = 0;
+            long backoff = 1000;
+            long maxBackoff = 30000;
+            while (retry < maxRetry && running) {
+                if (retry > 0) {
+                    try {
+                        Thread.sleep(random.nextInt(1000) + backoff);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        // It's OK as we don't need to exit base on this signal
+                    }
+                    backoff = Math.min((long) (backoff * 1.2), maxBackoff);
+                }
                 try {
                     long beginTime = System.currentTimeMillis();
                     processor.processEventBatch(events);
                     sourceCounter.addToEventAcceptedCount(events.size());
                     long elapsedTime = System.currentTimeMillis() - beginTime;
                     LOG.debug("Processed {} events, elapsedTime {}", numberOfEvents, elapsedTime);
+                    success = true;
                     break;
+                } catch (ChannelFullException ex) {
+                    // For Queue Full, retry until success.
+                    LOG.info("Queue full, wait and retry");
                 } catch (final Exception ex) {
-                    LOG.error("{} - Exception thrown while processing events", sourceName, ex);
-                }
-                LOG.info("Retrying {}/10", i + 1);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    // Do not save checkpoint!
-                    return null;
+                    if (retry < maxRetry - 1) {
+                        LOG.warn("{} - failed to send data, retrying: {}", sourceName, ex.getMessage());
+                        retry++;
+                    } else {
+                        LOG.error("{} - failed to send data, data maybe loss", sourceName, ex);
+                        success = false;
+                        break;
+                    }
                 }
             }
         }
         long nowMs = System.currentTimeMillis();
-        if (nowMs - checkpointSavedAt > 30 * 1000) {
+        if (success && nowMs - checkpointSavedAt > 30 * 1000) {
             try {
                 tracker.saveCheckPoint(true);
                 checkpointSavedAt = nowMs;
@@ -91,10 +115,13 @@ class LogReceiver implements ILogHubProcessor {
     @Override
     public void shutdown(ILogHubCheckPointTracker checkPointTracker) {
         LOG.info("Shutting down receiver.");
-        try {
-            checkPointTracker.saveCheckPoint(true);
-        } catch (Exception ex) {
-            LOG.error("Failed to save checkpoint to remote sever", ex);
+        running = false;
+        if (success) {
+            try {
+                checkPointTracker.saveCheckPoint(true);
+            } catch (Exception ex) {
+                LOG.error("Failed to save checkpoint to remote sever", ex);
+            }
         }
     }
 }
