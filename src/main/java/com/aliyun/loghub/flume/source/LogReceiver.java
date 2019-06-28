@@ -32,16 +32,19 @@ class LogReceiver implements ILogHubProcessor {
     private Random random;
     private volatile boolean running;
     private volatile boolean success;
+    private int maxRetry;
 
     LogReceiver(ChannelProcessor processor,
                 EventDeserializer deserializer,
                 SourceCounter sourceCounter,
-                String sourceName) {
+                String sourceName,
+                int maxRetry) {
         this.processor = processor;
         this.deserializer = deserializer;
         this.sourceCounter = sourceCounter;
         this.sourceName = sourceName;
         this.random = new Random();
+        this.maxRetry = maxRetry;
         this.running = true;
         this.success = true;
     }
@@ -63,14 +66,13 @@ class LogReceiver implements ILogHubProcessor {
             if (numberOfEvents == 0) {
                 continue;
             }
-            int maxRetry = 32;
             int retry = 0;
             long backoff = 1000;
             long maxBackoff = 30000;
             while (retry < maxRetry && running) {
                 if (retry > 0) {
                     try {
-                        Thread.sleep(random.nextInt(1000) + backoff);
+                        Thread.sleep(random.nextInt(500) + backoff);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         // It's OK as we don't need to exit base on this signal
@@ -87,7 +89,7 @@ class LogReceiver implements ILogHubProcessor {
                     break;
                 } catch (ChannelFullException ex) {
                     // For Queue Full, retry until success.
-                    LOG.info("Queue full, wait and retry");
+                    LOG.debug("Queue full, wait and retry");
                 } catch (final Exception ex) {
                     if (retry < maxRetry - 1) {
                         LOG.warn("{} - failed to send data, retrying: {}", sourceName, ex.getMessage());

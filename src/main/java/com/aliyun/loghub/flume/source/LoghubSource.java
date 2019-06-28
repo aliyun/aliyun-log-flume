@@ -29,12 +29,14 @@ import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_FETCH_IN_ORDER;
 import static com.aliyun.loghub.flume.Constants.DEFAULT_HEARTBEAT_INTERVAL_MS;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_MAX_RETRY;
 import static com.aliyun.loghub.flume.Constants.DESERIALIZER;
 import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
 import static com.aliyun.loghub.flume.Constants.FETCH_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.FETCH_IN_ORDER;
 import static com.aliyun.loghub.flume.Constants.HEARTBEAT_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
+import static com.aliyun.loghub.flume.Constants.MAX_RETRY;
 import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -47,11 +49,13 @@ public class LoghubSource extends AbstractSource implements
     private ClientWorker worker;
     private SourceCounter counter;
     private EventDeserializer deserializer;
+    private int maxRetry;
 
     @Override
     public void configure(Context context) {
         config = parseConsumerConfig(context);
         deserializer = createDeserializer(context);
+        maxRetry = context.getInteger(MAX_RETRY, DEFAULT_MAX_RETRY);
     }
 
     private static LogHubConfig parseConsumerConfig(Context context) {
@@ -143,13 +147,13 @@ public class LoghubSource extends AbstractSource implements
     public void start() throws FlumeException {
         LOG.info("Starting Loghub source {}...", getName());
         try {
-            worker = new ClientWorker(
-                    () -> new LogReceiver(getChannelProcessor(), deserializer, counter, getName()), config);
+            worker = new ClientWorker(() ->
+                    new LogReceiver(getChannelProcessor(), deserializer, counter, getName(), maxRetry), config);
         } catch (Exception e) {
             throw new FlumeException("Fail to start log service client worker.", e);
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOG.info("Shutting down consumer group thread...");
+            LOG.info("Shutting down source...");
             worker.shutdown();
         }));
         Thread consumerThread = new Thread(worker);

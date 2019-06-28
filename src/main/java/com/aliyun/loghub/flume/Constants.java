@@ -31,6 +31,8 @@ public class Constants {
     public static final int DEFAULT_BATCH_SIZE = 100;
 
     public static final String MAX_BUFFER_SIZE = "maxBufferSize";
+    public static final String MAX_RETRY = "maxRetry";
+    public static final int DEFAULT_MAX_RETRY = 16;
 
     public static final String SERIALIZER = "serializer";
     public static final String DESERIALIZER = "deserializer";
