@@ -6,7 +6,7 @@
 
     <groupId>com.aliyun.loghub.flume</groupId>
     <artifactId>aliyun-log-flume</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -47,6 +47,16 @@
             <groupId>com.aliyun.openservices</groupId>
             <artifactId>loghub-client-lib</artifactId>
             <version>${loghub.consumergroup.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>aliyun-log</artifactId>
+                    <groupId>com.aliyun.openservices</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.opencsv</groupId>
