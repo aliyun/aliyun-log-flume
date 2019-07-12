@@ -70,7 +70,7 @@
                 <!-- mvn clean compile assembly:single -DskipTests -->
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>${project.name}-${version}</finalName>
+                    <finalName>${project.name}-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
