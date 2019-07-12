@@ -1,12 +1,6 @@
 package com.aliyun.loghub.flume.sink;
 
 import com.aliyun.loghub.flume.source.DelimitedTextEventDeserializer;
-import com.aliyun.openservices.aliyun.log.producer.LogProducer;
-import com.aliyun.openservices.aliyun.log.producer.Producer;
-import com.aliyun.openservices.aliyun.log.producer.ProducerConfig;
-import com.aliyun.openservices.aliyun.log.producer.ProjectConfig;
-import com.aliyun.openservices.aliyun.log.producer.ProjectConfigs;
-import com.aliyun.openservices.aliyun.log.producer.Result;
 import com.aliyun.openservices.log.Client;
 import com.aliyun.openservices.log.common.LogItem;
 import com.aliyun.openservices.log.exception.LogException;
@@ -26,12 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -149,7 +139,11 @@ public class LoghubSink extends AbstractSink implements Configurable {
         return executor.submit(() -> {
             for (int i = 0; i < maxRetry; i++) {
                 if (i > 0) {
-                    Thread.sleep(50);
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException ex) {
+                        // It's okay
+                    }
                 }
                 try {
                     client.PutLogs(project, logstore, "", events, source);
