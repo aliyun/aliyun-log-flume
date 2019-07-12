@@ -13,7 +13,6 @@
         <flume.version>1.8.0</flume.version>
         <junit.version>4.10</junit.version>
         <loghub.consumergroup.version>0.6.16</loghub.consumergroup.version>
-        <loghub.producer.version>0.2.0</loghub.producer.version>
         <loghub.sdk.version>0.6.31</loghub.sdk.version>
         <protobuf.version>2.5.0</protobuf.version>
         <opencsv.version>4.6</opencsv.version>
@@ -33,11 +32,6 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.openservices</groupId>
-            <artifactId>aliyun-log-producer</artifactId>
-            <version>${loghub.producer.version}</version>
         </dependency>
         <dependency>
             <groupId>com.aliyun.openservices</groupId>
