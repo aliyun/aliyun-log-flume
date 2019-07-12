@@ -62,6 +62,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     private long maxBufferTime;
     private int maxRetry;
     private int concurrency;
+    private String source;
 
     @Override
     public synchronized void start() {
@@ -73,6 +74,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
         executor.allowCoreThreadTimeOut(true);
         counter.start();
         super.start();
+        source = NetworkUtils.getLocalMachineIP();
         LOG.info("Loghub Sink {} started.", getName());
     }
 
@@ -150,7 +152,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
                     Thread.sleep(50);
                 }
                 try {
-                    client.PutLogs(project, logstore, "", events, NetworkUtils.getLocalMachineIP());
+                    client.PutLogs(project, logstore, "", events, source);
                     return true;
                 } catch (LogException ex) {
                     if (ex.GetHttpCode() >= 500 || ex.GetHttpCode() == 403) {
