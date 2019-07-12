@@ -130,7 +130,9 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
         separatorChar = getChar(context, SEPARATOR_CHAR, CSVWriter.DEFAULT_SEPARATOR);
         quoteChar = getChar(context, QUOTE_CHAR, CSVWriter.DEFAULT_QUOTE_CHARACTER);
         escapeChar = getChar(context, ESCAPE_CHAR, CSVWriter.DEFAULT_ESCAPE_CHARACTER);
-        LOG.info("separatorChar=[" + separatorChar + "] quoteChar=[" + quoteChar + "] escapeChar=[" + escapeChar + "]");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("separatorChar=[" + separatorChar + "] quoteChar=[" + quoteChar + "] escapeChar=[" + escapeChar + "]");
+        }
         lineEnd = context.getString(LINE_END, DEFAULT_LINE_END);
         appendTimestamp = context.getBoolean(APPEND_TIMESTAMP, false);
         String[] fields = columns.split(",", -1);
