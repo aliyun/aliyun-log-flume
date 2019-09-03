@@ -96,7 +96,7 @@ agent.channels.memoryChannel.transactionCapacity = 100
 
 
 # Bind the source and sink to the channel:
-agent.sources.slssource.channels = memoryChannel
+agent.sources.slssrc.channels = memoryChannel
 agent.sinks.hdfssink.channel = memoryChannel
 ```
 NOTE: For HDFS sink, we need to download HDFS libraries from https://hadoop.apache.org/releases.html , the latest version is 3.1.2, after extracted it, copy all libraries under hadoop-{hadoop-version}/share/hadoop/common and hadoop-{hadoop-version}/share/hadoop/common/lib to apache-flume-1.9.0-bin/lib , this libraries are required by HDFS sink.
