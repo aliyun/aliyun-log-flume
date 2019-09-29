@@ -4,6 +4,7 @@ import com.aliyun.loghub.flume.source.DelimitedTextEventDeserializer;
 import com.aliyun.openservices.log.Client;
 import com.aliyun.openservices.log.util.NetworkUtils;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -23,17 +24,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
-import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
-import static com.aliyun.loghub.flume.Constants.BATCH_SIZE;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_MAX_RETRY;
-import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
-import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
-import static com.aliyun.loghub.flume.Constants.MAX_BUFFER_SIZE;
-import static com.aliyun.loghub.flume.Constants.MAX_RETRY;
-import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
-import static com.aliyun.loghub.flume.Constants.SERIALIZER;
+import static com.aliyun.loghub.flume.Constants.*;
 
 public class LoghubSink extends AbstractSink implements Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(LoghubSink.class);
@@ -155,6 +146,11 @@ public class LoghubSink extends AbstractSink implements Configurable {
         String accessKey = context.getString(ACCESS_KEY_SECRET_KEY);
         ensureNotEmpty(accessKey, ACCESS_KEY_SECRET_KEY);
         client = new Client(endpoint, accessKeyId, accessKey);
+        String userAgent = context.getString(LOG_USER_AGENT);
+        if(StringUtils.isEmpty(userAgent)){
+            userAgent = LOG_CONNECTOR_USER_AGENT;
+        }
+        client.setUserAgent(userAgent);
         logstore = context.getString(LOGSTORE_KEY);
         if (counter == null) {
             counter = new SinkCounter(getName());

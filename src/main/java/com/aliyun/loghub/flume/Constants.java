@@ -1,6 +1,8 @@
 package com.aliyun.loghub.flume;
 
 
+import com.aliyun.loghub.flume.utils.VersionInfoUtils;
+
 public class Constants {
 
     public static final String CONSUMER_GROUP_KEY = "consumerGroup";
@@ -13,6 +15,9 @@ public class Constants {
     public static final String CONSUME_POSITION_BEGIN = "begin";
     public static final String CONSUME_POSITION_END = "end";
     public static final String CONSUME_POSITION_TIMESTAMP = "timestamp";
+    public static final String LOG_USER_AGENT = "USER_AGENT";
+    public static final String LOG_CONNECTOR_USER_AGENT = VersionInfoUtils.getDefaultUserAgent();
+
     /**
      * Consumer group heartbeat interval in millisecond.
      */
