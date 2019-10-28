@@ -57,11 +57,13 @@ class LogReceiver implements ILogHubProcessor {
 
     @Override
     public String process(List<LogGroupData> logGroups, ILogHubCheckPointTracker tracker) {
+        LOG.debug("Processing {} log groups", logGroups.size());
+        int totalCount = 0;
         for (LogGroupData data : logGroups) {
             FastLogGroup logGroup = data.GetFastLogGroup();
             List<Event> events = deserializer.deserialize(logGroup);
-
             int numberOfEvents = events.size();
+            totalCount += numberOfEvents;
             LOG.debug("{} events serialized for shard {}", numberOfEvents, shardId);
             if (numberOfEvents == 0) {
                 continue;
@@ -102,6 +104,7 @@ class LogReceiver implements ILogHubProcessor {
                 }
             }
         }
+        LOG.debug("{} events have been serialized from {} log groups", totalCount, logGroups.size());
         long nowMs = System.currentTimeMillis();
         if (success && nowMs - checkpointSavedAt > 30 * 1000) {
             try {
