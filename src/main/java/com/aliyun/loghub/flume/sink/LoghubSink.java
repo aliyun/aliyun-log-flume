@@ -24,7 +24,19 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.aliyun.loghub.flume.Constants.*;
+import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
+import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
+import static com.aliyun.loghub.flume.Constants.BATCH_SIZE;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
+import static com.aliyun.loghub.flume.Constants.DEFAULT_MAX_RETRY;
+import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
+import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
+import static com.aliyun.loghub.flume.Constants.LOG_CONNECTOR_USER_AGENT;
+import static com.aliyun.loghub.flume.Constants.LOG_USER_AGENT;
+import static com.aliyun.loghub.flume.Constants.MAX_BUFFER_SIZE;
+import static com.aliyun.loghub.flume.Constants.MAX_RETRY;
+import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
+import static com.aliyun.loghub.flume.Constants.SERIALIZER;
 
 public class LoghubSink extends AbstractSink implements Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(LoghubSink.class);
@@ -147,7 +159,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
         ensureNotEmpty(accessKey, ACCESS_KEY_SECRET_KEY);
         client = new Client(endpoint, accessKeyId, accessKey);
         String userAgent = context.getString(LOG_USER_AGENT);
-        if(StringUtils.isEmpty(userAgent)){
+        if (StringUtils.isEmpty(userAgent)) {
             userAgent = LOG_CONNECTOR_USER_AGENT;
         }
         client.setUserAgent(userAgent);
