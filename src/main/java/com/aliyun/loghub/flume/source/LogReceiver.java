@@ -12,6 +12,7 @@ import org.apache.flume.instrumentation.SourceCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -55,10 +56,51 @@ class LogReceiver implements ILogHubProcessor {
         this.shardId = shardId;
     }
 
+    private boolean emitEvents(List<Event> events) {
+        int count = events.size();
+        int retry = 0;
+        long backoff = 1000;
+        long maxBackoff = 30000;
+        while (retry < maxRetry && running) {
+            if (retry > 0) {
+                try {
+                    Thread.sleep(random.nextInt(500) + backoff);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    // It's OK as we don't need to exit base on this signal
+                }
+                backoff = Math.min((long) (backoff * 1.2), maxBackoff);
+            }
+            try {
+                long beginTime = System.currentTimeMillis();
+                LOG.debug("Sending {} events to Flume", count);
+                processor.processEventBatch(events);
+                sourceCounter.addToEventAcceptedCount(count);
+                long elapsedTime = System.currentTimeMillis() - beginTime;
+                LOG.debug("Processed {} events, elapsedTime {}", count, elapsedTime);
+                return true;
+            } catch (ChannelFullException ex) {
+                // For Queue Full, retry until success.
+                LOG.debug("Queue full, wait and retry");
+            } catch (final Exception ex) {
+                if (retry < maxRetry - 1) {
+                    LOG.warn("{} - failed to send data, retrying: {}", sourceName, ex.getMessage());
+                    retry++;
+                } else {
+                    LOG.error("{} - failed to send data, data maybe loss", sourceName, ex);
+                    success = false;
+                    break;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public String process(List<LogGroupData> logGroups, ILogHubCheckPointTracker tracker) {
         LOG.debug("Processing {} log groups", logGroups.size());
         int totalCount = 0;
+        List<Event> batchEvents = new ArrayList<>();
         for (LogGroupData data : logGroups) {
             FastLogGroup logGroup = data.GetFastLogGroup();
             List<Event> events = deserializer.deserialize(logGroup);
@@ -68,41 +110,17 @@ class LogReceiver implements ILogHubProcessor {
             if (numberOfEvents == 0) {
                 continue;
             }
-            int retry = 0;
-            long backoff = 1000;
-            long maxBackoff = 30000;
-            while (retry < maxRetry && running) {
-                if (retry > 0) {
-                    try {
-                        Thread.sleep(random.nextInt(500) + backoff);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        // It's OK as we don't need to exit base on this signal
-                    }
-                    backoff = Math.min((long) (backoff * 1.2), maxBackoff);
-                }
-                try {
-                    long beginTime = System.currentTimeMillis();
-                    processor.processEventBatch(events);
-                    sourceCounter.addToEventAcceptedCount(events.size());
-                    long elapsedTime = System.currentTimeMillis() - beginTime;
-                    LOG.debug("Processed {} events, elapsedTime {}", numberOfEvents, elapsedTime);
-                    success = true;
-                    break;
-                } catch (ChannelFullException ex) {
-                    // For Queue Full, retry until success.
-                    LOG.debug("Queue full, wait and retry");
-                } catch (final Exception ex) {
-                    if (retry < maxRetry - 1) {
-                        LOG.warn("{} - failed to send data, retrying: {}", sourceName, ex.getMessage());
-                        retry++;
-                    } else {
-                        LOG.error("{} - failed to send data, data maybe loss", sourceName, ex);
-                        success = false;
-                        break;
-                    }
-                }
+            batchEvents.addAll(events);
+            if (batchEvents.size() < 1024) {
+                continue;
             }
+            success = emitEvents(batchEvents);
+            if (success) {
+                batchEvents = new ArrayList<>();
+            }
+        }
+        if (!batchEvents.isEmpty()) {
+            success = emitEvents(batchEvents);
         }
         LOG.debug("{} events have been serialized from {} log groups", totalCount, logGroups.size());
         long nowMs = System.currentTimeMillis();
