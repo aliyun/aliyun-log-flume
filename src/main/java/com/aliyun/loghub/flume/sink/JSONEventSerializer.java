@@ -25,13 +25,7 @@ public class JSONEventSerializer implements EventSerializer {
             String body = new String(event.getBody(), encoding);
             LogItem item = new LogItem();
             JSONObject object = JSONObject.parseObject(body);
-            object.forEach((key, value) -> {
-                if (value == null) {
-                    item.mContents.add(new LogContent(key, "null"));
-                } else {
-                    item.mContents.add(new LogContent(key, value.toString()));
-                }
-            });
+            object.forEach((key, value) -> item.PushBack(key, value == null ? "null" : value.toString()));
             return item;
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Failed to decode event with encoding: " + encoding, e);
