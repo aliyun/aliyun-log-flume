@@ -1,9 +1,9 @@
 package com.aliyun.loghub.flume.sink;
 
+import com.aliyun.loghub.flume.Validate;
 import com.aliyun.loghub.flume.source.DelimitedTextEventDeserializer;
 import com.aliyun.openservices.log.Client;
 import com.aliyun.openservices.log.util.NetworkUtils;
-import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
@@ -148,15 +148,15 @@ public class LoghubSink extends AbstractSink implements Configurable {
     @Override
     public void configure(Context context) {
         String endpoint = context.getString(ENDPOINT_KEY);
-        ensureNotEmpty(endpoint, ENDPOINT_KEY);
+        Validate.notEmpty(endpoint, ENDPOINT_KEY);
         project = context.getString(PROJECT_KEY);
-        ensureNotEmpty(project, PROJECT_KEY);
+        Validate.notEmpty(project, PROJECT_KEY);
         logstore = context.getString(LOGSTORE_KEY);
-        ensureNotEmpty(logstore, LOGSTORE_KEY);
+        Validate.notEmpty(logstore, LOGSTORE_KEY);
         String accessKeyId = context.getString(ACCESS_KEY_ID_KEY);
-        ensureNotEmpty(accessKeyId, ACCESS_KEY_ID_KEY);
+        Validate.notEmpty(accessKeyId, ACCESS_KEY_ID_KEY);
         String accessKey = context.getString(ACCESS_KEY_SECRET_KEY);
-        ensureNotEmpty(accessKey, ACCESS_KEY_SECRET_KEY);
+        Validate.notEmpty(accessKey, ACCESS_KEY_SECRET_KEY);
         client = new Client(endpoint, accessKeyId, accessKey);
         String userAgent = context.getString(LOG_USER_AGENT);
         if (StringUtils.isEmpty(userAgent)) {
@@ -174,10 +174,6 @@ public class LoghubSink extends AbstractSink implements Configurable {
         int cores = Runtime.getRuntime().availableProcessors();
         concurrency = context.getInteger("concurrency", cores);
         serializer = createSerializer(context);
-    }
-
-    private static void ensureNotEmpty(String value, String name) {
-        Preconditions.checkArgument(value != null && !value.isEmpty(), "Missing parameter: " + name);
     }
 
     private EventSerializer createSerializer(Context context) {
