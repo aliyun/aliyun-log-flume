@@ -1,109 +1,80 @@
-# Aliyun Log Flume
 
-```Apache Flume``` is a open source project used for moving massive quantities of streaming data. Aliyun Log Flume implemented Flume Source and Sink for moving data between Loghub and external data source like HDFS, Kakfa. 
+Aliyun Log Flume
+================
 
-### Requirements
-- Java 1.8+
-- Maven 3.x+.
+#### Flume
 
-### Setup up Flume
+Flume是Apache开源的一个在各个大数据系统之间搬运数据的工具，用户需要在机器上运行Flume Agent, 每个Flume Agent进程可以包含Source，Sink和Channel三个组件。
+- Source: 数据源，常见的Source有Kafka，文件等。
+- Sink: 数据写入目标，如HDFS，Hive等。
+- Channel: 数据在从Source获取之后写入Sink之前的缓冲队列，常见的channel有内存队列，Kafka等。
 
-#### Downlaod Flume
-
-Download ```Apache Flume``` from the official site - http://www.apache.org/dyn/closer.lua/flume/1.9.0/apache-flume-1.9.0-bin.tar.gz, the latest version is ```1.9.0```. Copy the downloaded tarball in the directory of your server and extract contents using the following command:
-
-```tar -xvf apache-flume-1.9.0-bin.tar.gz```
- 
-This command will create a new directory named apache-flume-1.9.0-bin and extract files into it. All official sinks/sources library are placed under the the directory apache-flume-1.9.0-bin/lib. There is also a directory apache-flume-1.9.0-bin/conf, we'll add our configuration file in that directory later.
-
-#### Build this project
-
-Go to the project root folder, and build aliyun-log-flume using the following command:
-
-```mvn clean compile assembly:single -DskipTests```
-
-After this command successfully executed, a new jar named ```aliyun-log-flume-1.0-SNAPSHOT.jar``` will be generated under directory target, all denpendencies of this project are packaged into the jar file as well. Then copy aliyun-log-flume-1.0-SNAPSHOT.jar to apache-flume-1.9.0-bin/lib.
-
-### Configuration
-
-Create a new configuration file ```flume-loghub.conf``` under apache-flume-1.9.0-bin/conf, and add our configuration of sink or source in this file, here is an example for collecting data from netcat to Loghub and from Loghub to HDFS:
-
-##### Sink example
-
-Loghub sink used to streaming data from flume to Loghub, here is an example for collecting data from ```netcat``` and send to Loghub:
-```
-agent.sources = netcatsource
-agent.sinks = slssink
-agent.channels = memoryChannel
-
-# Configure the source:
-agent.sources.netcatsource.type = netcat
-agent.sources.netcatsource.bind = localhost
-agent.sources.netcatsource.port = 44444
-
-# Describe the sink:
-agent.sinks.slssink.type = com.aliyun.loghub.flume.sink.LoghubSink
-agent.sinks.slssink.endpoint = <Your Loghub endpoint>
-agent.sinks.slssink.project = <Your Loghub project>
-agent.sinks.slssink.logstore = <Your Loghub logstore>
-agent.sinks.slssink.accessKeyId = <Your Accesss Key Id>
-agent.sinks.slssink.accessKey = <Your Access Key>
+Flume中的每条数据以Event的形式存在，Event对象由两部分组成：
+- body: 数据内容，以字节数组的形式。
+- headers: 以key-value的形式组成，包含附加属性。
 
 
-# Configure a channel that buffers events in memory:
-agent.channels.memoryChannel.type = memory
-agent.channels.memoryChannel.capacity = 20000
-agent.channels.memoryChannel.transactionCapacity = 100
+#### aliyun-log-flume 
+aliyun-log-flume 是一个实现日志服务（Loghub）对接Flume的插件，可以通过Flume将日志服务和其他的数据
+系统如HDFS，Kafka等系统打通。目前Flume官方支持的插件除了HDFS，Kafka之外还有Hive，HBase，ElasticSearch等，
+除此之外对于常见的数据源在社区也都能找到对应的插件支持。
+aliyun-log-flume 为Loghub 实现了Sink和Source 插件。
+- Sink: Flume读取其他数据源的数据然后写入Loghub。
+- Source: Flume消费Loghub然后写入其他系统如HDFS。
 
-# Bind the source and sink to the channel:
-agent.sources.netcatsource.channels = memoryChannel
-agent.sinks.slssink.channel = memoryChannel
-```
+##### Loghub Sink
+通过sink的方式可以将其他数据源的数据通过Flume接入Loghub。目前支持两种解析格式：
+- SIMPLE：将整个Flume Event作为一个字段写入Loghub。
+- DELIMITED：将整个Flume Event作为分隔符分隔的数据根据配置的列名解析成对应的字段写入Loghub。
 
-#### Source example
-Ingesting data from Loghub and save to HDFS:
-```
-agent.sources = slssrc
-agent.sinks = hdfssink
-agent.channels = memoryChannel
+支持的配置如下：
 
-# Configure the source:
-agent.sources.slssrc.type = com.aliyun.loghub.flume.source.LoghubSource
-agent.sources.slssrc.endpoint = <Your Loghub endpoint>
-agent.sources.slssrc.project = <Your Loghub project>
-agent.sources.slssrc.logstore = <Your Loghub logstore>
-agent.sources.slssrc.accessKeyId = <Your Accesss Key Id>
-agent.sources.slssrc.accessKey = <Your Access Key>
-agent.sources.slssrc.columns = <expected clomuns in order>
-agent.sources.slssrc.separatorChar = ,
+|名称|描述|默认值|必需|
+|---|---|---|---|
+|type| 固定为com.aliyun.loghub.flume.sink.LoghubSink | | Y |
+|endpoint| Loghub endpoint| | Y |
+|project| Loghub project| | Y |
+|logstore| Loghub logstore| | Y |
+|accessKeyId| Loghub accessKeyId| | Y |
+|accessKey| Loghub accessKey| | Y |
+|batchSize| 写入Loghub批数据大小|1000 | N |
+|maxBufferSize| 缓存队列大小|1000 | N |
+|serializer| Event序列化格式，支持DELIMITED, SIMPLE,或者自定义serializer，如果是自定义serializer，此处填完整类名称 |SIMPLE | N |
+|columns| serializer为DELIMITED时，必须指定字段列表，用逗号分隔，顺序与实际的数据中字段顺序一致。| | N |
+|separatorChar| serializer为DELIMITED时，用于指定数据的分隔符，必须为单个字符|, | N |
+|quoteChar| serializer为DELIMITED时，用于指定Quote字符 |" | N |
+|escapeChar| serializer为DELIMITED时，用于指定转义字符 | " | N |
+|useRecordTime| 是否使用数据中的timestamp字段作为日志时间| false| N |
 
-# Describe the sink:
-agent.sinks.hdfssink.type = hdfs
-agent.sinks.hdfssink.hdfs.path = hdfs://localhost:8020/user/root/test
-agent.sinks.hdfssink.hdfs.writeFormat = Text
-agent.sinks.hdfssink.hdfs.round = true
-agent.sinks.hdfssink.hdfs.roundValue = 20
-agent.sinks.hdfssink.hdfs.roundUnit = minute
-agent.sinks.hdfssink.hdfs.rollSize = 0
-agent.sinks.hdfssink.hdfs.rollCount = 0
-agent.sinks.hdfssink.hdfs.fileType = DataStream
-agent.sinks.hdfssink.hdfs.useLocalTimeStamp = true
+#### Loghub Source
+通过Source的方式可以将Loghub的数据经过Flume投递到其他的数据源。目前支持两种输出格式：
+- DELIMITED：数据以分隔符的方式写入Flume。
+- JSON：数据以JSON的形式写入Flume。
 
-# Configure a channel that buffers events in memory:
-agent.channels.memoryChannel.type = memory
-agent.channels.memoryChannel.capacity = 20000
-agent.channels.memoryChannel.transactionCapacity = 100
+支持的配置如下：
 
-
-# Bind the source and sink to the channel:
-agent.sources.slssrc.channels = memoryChannel
-agent.sinks.hdfssink.channel = memoryChannel
-```
-NOTE: For HDFS sink, we need to download HDFS libraries from https://hadoop.apache.org/releases.html , the latest version is 3.1.2, after extracted it, copy all libraries under hadoop-{hadoop-version}/share/hadoop/common and hadoop-{hadoop-version}/share/hadoop/common/lib to apache-flume-1.9.0-bin/lib , this libraries are required by HDFS sink.
-
-### Start Flume
-After the configuration file is created, run the following command under apache-flume-1.9.0-bin:
-```
-./bin/flume-ng agent --name agent --conf conf  --conf-file conf/flume-loghub.conf
-```
-
+|名称|描述|默认值|必需|
+|---|---|---|---|
+|type| 固定为com.aliyun.loghub.flume.source.LoghubSource | | Y |
+|endpoint| Loghub endpoint| | Y |
+|project| Loghub project| | Y |
+|logstore| Loghub logstore| | Y |
+|accessKeyId| Loghub accessKeyId| | Y |
+|accessKey| Loghub accessKey| | Y |
+|heartbeatIntervalMs| 客户端和Loghub的心跳间隔，单位毫秒|30000 | N |
+|fetchIntervalMs| Loghub数据拉取间隔，单位毫秒|100 | N |
+|fetchInOrder| 是否按顺序消费|false | N |
+|batchSize| 拉取批量大小 |100 | N |
+|consumerGroup| 拉取的消费组名称 | 随机产生 | N |
+|initialPosition| 拉取起点位置，支持begin, end, timestamp。注意：如果服务端已经存在checkpoint，会优先使用服务端的checkpoint|begin | N |
+|timestamp| 当我initialPosition为timestamp时，必须指定时间戳，Unix时间戳格式 | | N |
+|deserializer| Event反序列化格式，支持DELIMITED, JSON,或者自定义deserializer，如果是自定义deserializer，此处填完整类名称 |DELIMITED | Y |
+|columns| deserializer为DELIMITED时，必须指定字段列表，用逗号分隔，顺序与实际的数据中字段顺序一致。| | N |
+|separatorChar| deserializer为DELIMITED时，用于指定数据的分隔符，必须为单个字符|, | N |
+|quoteChar| deserializer为DELIMITED时，用于指定Quote字符 |" | N |
+|escapeChar| deserializer为DELIMITED时，用于指定转义字符 | " | N |
+|appendTimestamp| deserializer为DELIMITED时，是否将时间戳作为一个字段自动添加到每行末尾 | false | N |
+|sourceAsField| deserializer为JSON时，是否将日志Source作为一个字段，字段名称为__source__ |false | N |
+|tagAsField| deserializer为JSON时，是否将日志Tag作为字段，字段名称为__tag__:{tag名称}| false | N |
+|timeAsField| deserializer为JSON时，是否将日志时间作为一个字段，字段名称为__time__ | false | N |
+|useRecordTime| 是否使用日志的时间，用于Event header中指定时间戳，如果为false则使用系统时间| false| N |
