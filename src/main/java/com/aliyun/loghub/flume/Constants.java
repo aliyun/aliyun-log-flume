@@ -48,6 +48,7 @@ public class Constants {
     public static final String LINE_END = "lineEnd";
     public static final String APPEND_TIMESTAMP = "appendTimestamp";
     public static final String TIME_AS_FIELD = "timeAsField";
+    public static final String TOPIC_AS_FIELD = "topicAsField";
     public static final String TAG_AS_FIELD = "tagAsField";
     public static final String SOURCE_AS_FIELD = "sourceAsField";
 
@@ -56,6 +57,7 @@ public class Constants {
     public static final String RECORD_TIME_KEY = "__time__";
     public static final String RECORD_TAG_PREFIX = "__tag__:";
     public static final String RECORD_SOURCE_KEY = "__source__";
+    public static final String RECORD_TOPIC_KEY = "__topic__";
 
     public static final String APPEND_LOCAL_TIME = "appendLocalTime";
     public static final String LOCAL_TIME_FIELD_NAME = "localTimeFieldName";
