@@ -25,6 +25,8 @@ import static com.aliyun.loghub.flume.Constants.TAG_AS_FIELD;
 import static com.aliyun.loghub.flume.Constants.TIMESTAMP;
 import static com.aliyun.loghub.flume.Constants.TIME_AS_FIELD;
 import static com.aliyun.loghub.flume.Constants.USE_RECORD_TIME;
+import static com.aliyun.loghub.flume.Constants.TOPIC_AS_FIELD;
+import static com.aliyun.loghub.flume.Constants.RECORD_TOPIC_KEY;
 
 
 public class JSONEventDeserializer implements EventDeserializer {
@@ -35,6 +37,7 @@ public class JSONEventDeserializer implements EventDeserializer {
     private boolean sourceAsField;
     private boolean tagAsField;
     private boolean timeAsField;
+    private boolean topicAsField;
     private boolean autoDetectJSONFields;
 
 
@@ -99,6 +102,9 @@ public class JSONEventDeserializer implements EventDeserializer {
         if (sourceAsField) {
             record.put(RECORD_SOURCE_KEY, logGroup.getSource());
         }
+        if (topicAsField) {
+            record.put(RECORD_TOPIC_KEY, logGroup.getTopic());
+        }
         return record.toJSONString();
     }
 
@@ -131,6 +137,7 @@ public class JSONEventDeserializer implements EventDeserializer {
         sourceAsField = context.getBoolean(SOURCE_AS_FIELD, false);
         tagAsField = context.getBoolean(TAG_AS_FIELD, false);
         timeAsField = context.getBoolean(TIME_AS_FIELD, false);
+        topicAsField = context.getBoolean(TOPIC_AS_FIELD, false);
         autoDetectJSONFields = context.getBoolean(AUTO_DETECT_JSON_FIELDS, true);
     }
 }
