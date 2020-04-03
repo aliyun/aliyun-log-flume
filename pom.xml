@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flume.version>1.8.0</flume.version>
         <junit.version>4.10</junit.version>
-        <loghub.consumergroup.version>0.6.19</loghub.consumergroup.version>
+        <loghub.consumergroup.version>0.6.21</loghub.consumergroup.version>
         <loghub.sdk.version>0.6.39</loghub.sdk.version>
         <protobuf.version>2.5.0</protobuf.version>
         <opencsv.version>4.6</opencsv.version>
