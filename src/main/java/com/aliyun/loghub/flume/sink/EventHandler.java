@@ -49,7 +49,9 @@ public class EventHandler implements Callable<Boolean> {
                 LOG.error("Serialize event to log record failed", ex);
                 continue;
             }
-            records.add(record);
+            if (record != null) {
+                records.add(record);
+            }
         }
         if (records.isEmpty()) {
             return true;

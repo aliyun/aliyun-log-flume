@@ -187,6 +187,9 @@ public class LoghubSink extends AbstractSink implements Configurable {
         } else if (serializerName.equals(SimpleEventSerializer.ALIAS)
                 || serializerName.equalsIgnoreCase(SimpleEventSerializer.class.getName())) {
             serializer = new SimpleEventSerializer();
+        } else if (serializerName.endsWith(RegexEventSerializer.ALIAS)
+                || serializerName.equalsIgnoreCase(RegexEventSerializer.class.getName())) {
+            serializer = new RegexEventSerializer();
         } else if (serializerName.endsWith(JSONEventSerializer.ALIAS)
                 || serializerName.equalsIgnoreCase(JSONEventSerializer.class.getName())) {
             serializer = new JSONEventSerializer();
