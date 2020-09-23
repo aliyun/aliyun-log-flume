@@ -109,7 +109,7 @@ public class RegexEventSerializer implements EventSerializer {
             String text = new String(event.getBody(), encoding);
             Matcher matcher = pattern.matcher(text);
             if (!matcher.matches()) {
-                LOG.warn("Regex not match - {}", text);
+                LOG.debug("Regex not match - {}", text);
                 record.PushBack("content", text);
                 return record;
             }
