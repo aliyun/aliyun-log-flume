@@ -1,6 +1,6 @@
 ```
 mvn clean compile assembly:single -DskipTests
-mv target/aliyun-log-flume-1.2.jar $FLUME_HOME/lib
+mv target/aliyun-log-flume-1.3.jar $FLUME_HOME/lib
 mv flume-env.sh $FLUME_HOME/conf
 mv kafka2sls.properties $FLUME_HOME/conf
 mv log4j.properties $FLUME_HOME/conf
