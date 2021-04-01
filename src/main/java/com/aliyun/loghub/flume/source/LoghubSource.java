@@ -38,6 +38,8 @@ import static com.aliyun.loghub.flume.Constants.FETCH_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.FETCH_IN_ORDER;
 import static com.aliyun.loghub.flume.Constants.HEARTBEAT_INTERVAL_MS;
 import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
+import static com.aliyun.loghub.flume.Constants.LOG_CONNECTOR_USER_AGENT;
+import static com.aliyun.loghub.flume.Constants.LOG_USER_AGENT;
 import static com.aliyun.loghub.flume.Constants.MAX_RETRY;
 import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -107,6 +109,11 @@ public class LoghubSource extends AbstractSource implements
         config.setHeartBeatIntervalMillis(heartbeatIntervalMs);
         config.setConsumeInOrder(fetchInOrder);
         config.setFetchIntervalMillis(fetchIntervalMs);
+        String userAgent = context.getString(LOG_USER_AGENT);
+        if (StringUtils.isBlank(userAgent)) {
+            userAgent = LOG_CONNECTOR_USER_AGENT;
+        }
+        config.setUserAgent(userAgent);
         return config;
     }
 
