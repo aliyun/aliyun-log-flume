@@ -114,7 +114,7 @@ public class RegexEventSerializer implements EventSerializer {
                 return record;
             }
             for (int i = 1; i <= matcher.groupCount(); i++) {
-                if (i >= fieldNames.size()) {
+                if (i > fieldNames.size()) {
                     break;
                 }
                 String value = matcher.group(i);
