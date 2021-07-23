@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static com.aliyun.loghub.flume.Constants.APPEND_LOCAL_TIME;
 import static com.aliyun.loghub.flume.Constants.APPEND_TIMESTAMP;
+import static com.aliyun.loghub.flume.Constants.APPLY_QUOTES_TO_ALL;
 import static com.aliyun.loghub.flume.Constants.COLUMNS;
 import static com.aliyun.loghub.flume.Constants.ESCAPE_CHAR;
 import static com.aliyun.loghub.flume.Constants.LINE_END;
@@ -40,6 +41,7 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
     private Map<String, Integer> fieldIndexMapping;
     private boolean useRecordTime;
     private boolean appendTimestamp;
+    private boolean applyQuotesToAll;
     private char separatorChar;
     private char quoteChar;
     private char escapeChar;
@@ -91,7 +93,7 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
             if (appendLocalTime) {
                 record[localTimeIndex] = localTime;
             }
-            csvWriter.writeNext(record, false);
+            csvWriter.writeNext(record, applyQuotesToAll);
             try {
                 csvWriter.flush();
             } catch (IOException ex) {
@@ -127,6 +129,7 @@ public class DelimitedTextEventDeserializer implements EventDeserializer {
         if (StringUtils.isBlank(columns)) {
             throw new IllegalArgumentException("Missing parameters: " + COLUMNS);
         }
+        applyQuotesToAll = context.getBoolean(APPLY_QUOTES_TO_ALL, false);
         separatorChar = getChar(context, SEPARATOR_CHAR, CSVWriter.DEFAULT_SEPARATOR);
         quoteChar = getChar(context, QUOTE_CHAR, CSVWriter.DEFAULT_QUOTE_CHARACTER);
         escapeChar = getChar(context, ESCAPE_CHAR, CSVWriter.DEFAULT_ESCAPE_CHARACTER);

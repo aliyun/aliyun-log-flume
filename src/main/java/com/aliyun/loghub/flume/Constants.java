@@ -43,6 +43,7 @@ public class Constants {
     public static final String DESERIALIZER = "deserializer";
     public static final String COLUMNS = "columns";
     public static final String SEPARATOR_CHAR = "separatorChar";
+    public static final String APPLY_QUOTES_TO_ALL = "applyQuotesToAll";
     public static final String QUOTE_CHAR = "quoteChar";
     public static final String ESCAPE_CHAR = "escapeChar";
     public static final String LINE_END = "lineEnd";
