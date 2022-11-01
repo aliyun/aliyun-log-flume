@@ -128,7 +128,7 @@ class LogReceiver implements ILogHubProcessor {
             try {
                 tracker.saveCheckPoint(true);
                 checkpointSavedAt = nowMs;
-                LOG.info("Received {} logs from shard {}", sourceCounter.getEventReceivedCount(), shardId);
+                LOG.info("Received {} logs from source", sourceCounter.getEventReceivedCount());
             } catch (LogHubCheckPointException ex) {
                 LOG.error("Failed to save checkpoint to remote sever", ex);
             }
