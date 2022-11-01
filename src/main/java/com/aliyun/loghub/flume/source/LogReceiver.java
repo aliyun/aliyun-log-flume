@@ -75,13 +75,13 @@ class LogReceiver implements ILogHubProcessor {
                 long beginTime = System.currentTimeMillis();
                 LOG.debug("Sending {} events to Flume", count);
                 processor.processEventBatch(events);
-                sourceCounter.addToEventAcceptedCount(count);
+                sourceCounter.addToEventReceivedCount(count);
                 long elapsedTime = System.currentTimeMillis() - beginTime;
                 LOG.debug("Processed {} events, elapsedTime {}", count, elapsedTime);
                 return true;
             } catch (ChannelFullException ex) {
                 // For Queue Full, retry until success.
-                LOG.debug("Queue full, wait and retry");
+                LOG.warn("Queue full, wait and retry");
             } catch (final Exception ex) {
                 if (retry < maxRetry - 1) {
                     LOG.warn("{} - failed to send data, retrying: {}", sourceName, ex.getMessage());
@@ -128,6 +128,7 @@ class LogReceiver implements ILogHubProcessor {
             try {
                 tracker.saveCheckPoint(true);
                 checkpointSavedAt = nowMs;
+                LOG.info("Received {} logs from shard {}", sourceCounter.getEventReceivedCount(), shardId);
             } catch (LogHubCheckPointException ex) {
                 LOG.error("Failed to save checkpoint to remote sever", ex);
             }
