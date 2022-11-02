@@ -101,7 +101,7 @@ public class LoghubSource extends AbstractSource implements
                         ConsumePosition.END_CURSOR);
                 break;
             default:
-                // Start from earliest by default
+                // Start from the earliest position by default
                 config = new LogHubConfig(consumerGroup, consumerId, endpoint, project, logstore, accessKeyId, accessKey,
                         ConsumePosition.BEGIN_CURSOR);
                 break;
