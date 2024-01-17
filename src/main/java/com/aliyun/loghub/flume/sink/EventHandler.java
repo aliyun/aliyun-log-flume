@@ -58,8 +58,8 @@ public class EventHandler implements Callable<Boolean> {
         if (records.isEmpty()) {
             return true;
         }
-        long backoff = 50;
-        for (int i = 0; i < maxRetry; i++) {
+        long backoff = 100;
+        for (int i = 0; ; i++) {
             if (i > 0) {
                 try {
                     Thread.sleep(backoff);
@@ -84,6 +84,5 @@ public class EventHandler implements Callable<Boolean> {
                 }
             }
         }
-        return false;
     }
 }
