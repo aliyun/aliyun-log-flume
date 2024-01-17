@@ -22,6 +22,8 @@ public class EventHandler implements Callable<Boolean> {
     private final EventSerializer serializer;
     private final int maxRetry;
 
+    private static final long MAX_BACKOFF = 3000;
+
     EventHandler(Client client,
                  String project,
                  String logstore,
@@ -56,28 +58,31 @@ public class EventHandler implements Callable<Boolean> {
         if (records.isEmpty()) {
             return true;
         }
-        for (int i = 0; i < maxRetry; i++) {
+        long backoff = 100;
+        for (int i = 0; ; i++) {
             if (i > 0) {
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(backoff);
                 } catch (InterruptedException ex) {
                     // It's okay
                     Thread.currentThread().interrupt();
                 }
+                backoff = Math.min(backoff * 2, MAX_BACKOFF);
             }
             try {
                 client.PutLogs(project, logstore, "", records, source);
                 LOG.info("{} events has been sent to Log Service", records.size());
                 return true;
             } catch (LogException ex) {
-                if ((ex.GetHttpCode() >= 500 || ex.GetHttpCode() == 403) && i < maxRetry - 1) {
-                    LOG.warn("Retry on error: {}", ex.GetErrorMessage());
+                int code = ex.GetHttpCode();
+                boolean alwaysRetry = code >= 500 || code == 403 || code <= 0;
+                if (alwaysRetry || i < maxRetry - 1) {
+                    LOG.warn("Retry on error={}, status={}", ex.GetErrorMessage(), code);
                 } else {
                     LOG.error("Send events to Log Service failed", ex);
                     throw ex;
                 }
             }
         }
-        return false;
     }
 }
