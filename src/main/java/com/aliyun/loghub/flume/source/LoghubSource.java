@@ -42,6 +42,7 @@ import static com.aliyun.loghub.flume.Constants.LOG_CONNECTOR_USER_AGENT;
 import static com.aliyun.loghub.flume.Constants.LOG_USER_AGENT;
 import static com.aliyun.loghub.flume.Constants.MAX_RETRY;
 import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
+import static com.aliyun.loghub.flume.Constants.QUERY;
 import static com.google.common.base.Preconditions.checkArgument;
 
 
@@ -98,13 +99,17 @@ public class LoghubSource extends AbstractSource implements
                 break;
             case CONSUME_POSITION_END:
                 config = new LogHubConfig(consumerGroup, consumerId, endpoint, project, logstore, accessKeyId, accessKey,
-                        ConsumePosition.END_CURSOR);
+                        ConsumePosition.END_CURSOR, batchSize);
                 break;
             default:
                 // Start from the earliest position by default
                 config = new LogHubConfig(consumerGroup, consumerId, endpoint, project, logstore, accessKeyId, accessKey,
-                        ConsumePosition.BEGIN_CURSOR);
+                        ConsumePosition.BEGIN_CURSOR, batchSize);
                 break;
+        }
+        String query = context.getString(QUERY);
+        if (!StringUtils.isBlank(query)) {
+            config.setQuery(query);
         }
         config.setHeartBeatIntervalMillis(heartbeatIntervalMs);
         config.setConsumeInOrder(fetchInOrder);

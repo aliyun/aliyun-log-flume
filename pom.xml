@@ -6,13 +6,13 @@
 
     <groupId>com.aliyun.loghub.flume</groupId>
     <artifactId>aliyun-log-flume</artifactId>
-    <version>1.7</version>
+    <version>1.8</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flume.version>1.8.0</flume.version>
         <junit.version>4.10</junit.version>
-        <loghub.consumergroup.version>0.6.38</loghub.consumergroup.version>
+        <loghub.consumergroup.version>0.6.47</loghub.consumergroup.version>
         <protobuf.version>2.5.0</protobuf.version>
         <opencsv.version>4.6</opencsv.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -77,6 +77,8 @@ agent.sources.slssrc.accessKey = <Your Access Key>
 agent.sources.slssrc.consumerGroup = consumer-group-test
 agent.sources.slssrc.columns = <expected clomuns in order>
 agent.sources.slssrc.separatorChar = ,
+# query for SLS SPL in source, refer: https://help.aliyun.com/zh/sls/user-guide/spl-overview
+agent.sources.slssrc.query = * | WHERE method = 'POST'
 
 # Describe the sink:
 agent.sinks.hdfssink.type = hdfs
