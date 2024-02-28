@@ -1,5 +1,6 @@
 package com.aliyun.loghub.flume.sink;
 
+import com.aliyun.loghub.flume.Constants;
 import com.aliyun.loghub.flume.Validate;
 import com.aliyun.loghub.flume.source.DelimitedTextEventDeserializer;
 import com.aliyun.openservices.log.Client;
@@ -18,9 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +51,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     private String logstore;
     private String source;
     private EventSerializer serializer;
-    private List<Future<Boolean>> producerFutures = new ArrayList<>();
+    private final List<Future<Boolean>> producerFutures = new ArrayList<>();
     private ThreadPoolExecutor executor;
     private Client client;
     private SinkCounter counter;
@@ -59,7 +60,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     public synchronized void start() {
         executor = new ThreadPoolExecutor(0, concurrency,
                 60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(100),
+                new SynchronousQueue<>(),
                 Executors.defaultThreadFactory(),
                 new ThreadPoolExecutor.CallerRunsPolicy());
         executor.allowCoreThreadTimeOut(true);
@@ -139,10 +140,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     }
 
     private boolean shouldFlush(int count, long earliestEventTime) {
-        if (count >= bufferSize) {
-            return true;
-        }
-        return System.currentTimeMillis() - earliestEventTime >= maxBufferTime;
+        return count >= bufferSize || System.currentTimeMillis() - earliestEventTime >= maxBufferTime;
     }
 
     @Override
@@ -168,11 +166,11 @@ public class LoghubSink extends AbstractSink implements Configurable {
             counter = new SinkCounter(getName());
         }
         batchSize = context.getInteger(BATCH_SIZE, DEFAULT_BATCH_SIZE);
-        bufferSize = context.getInteger(MAX_BUFFER_SIZE, 1000);
+        bufferSize = context.getInteger(MAX_BUFFER_SIZE, Constants.DEFAULT_BUFFER_SIZE);
         maxBufferTime = context.getInteger("maxBufferTime", 10000);
         maxRetry = context.getInteger(MAX_RETRY, DEFAULT_MAX_RETRY);
         int cores = Runtime.getRuntime().availableProcessors();
-        concurrency = context.getInteger("concurrency", cores);
+        concurrency = context.getInteger("concurrency", cores * 2);
         serializer = createSerializer(context);
     }
 
