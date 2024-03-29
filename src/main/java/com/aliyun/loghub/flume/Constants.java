@@ -35,9 +35,9 @@ public class Constants {
     public static final boolean DEFAULT_FETCH_IN_ORDER = false;
     public static final String BATCH_SIZE = "batchSize";
     public static final int DEFAULT_BATCH_SIZE = 200;
-    public static final String BUFFER_SIZE_IN_BYTES = "bufferSizeInBytes";
-    public static final long DEFAULT_BUFFER_SIZE_IN_BYTES = 2 * 1024 * 1024; // 2MB
-    public static final long MAX_BUFFER_SIZE_IN_BYTES = 10 * 1024 * 1024; // 10MB
+    public static final String BUFFER_BYTES = "bufferBytes";
+    public static final long DEFAULT_BUFFER_BYTES = 2 * 1024 * 1024; // 2MB
+    public static final long MAX_LOG_GROUP_BYTES = 10 * 1024 * 1024; // 10MB
     public static final String MAX_BUFFER_TIME = "maxBufferTime";
     public static final String MAX_RETRY = "maxRetry";
     public static final int DEFAULT_MAX_RETRY = 16;

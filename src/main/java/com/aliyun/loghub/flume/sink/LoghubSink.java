@@ -24,7 +24,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(LoghubSink.class);
 
     private int batchSize;
-    private long bufferSizeInBytes;
+    private long bufferBytes;
     private int maxRetry;
     private int concurrency;
     private long maxBufferTime;
@@ -97,14 +97,14 @@ public class LoghubSink extends AbstractSink implements Configurable {
                     continue;
                 }
                 long logItemSize = getLogItemSize(logItem);
-                if (logItemSize >= MAX_BUFFER_SIZE_IN_BYTES) {
-                    LOG.error("Event is too large, size {}", logItemSize);
+                if (logItemSize >= MAX_LOG_GROUP_BYTES) {
+                    LOG.error("Event size {} is too large", logItemSize);
                     continue;
                 }
                 if (earliestEventTime < 0) {
                     earliestEventTime = System.currentTimeMillis();
                 }
-                if (totalBytes + logItemSize > bufferSizeInBytes || System.currentTimeMillis() - earliestEventTime >= maxBufferTime) {
+                if (totalBytes + logItemSize > bufferBytes || System.currentTimeMillis() - earliestEventTime >= maxBufferTime) {
                     LOG.debug("Flushing events to Log service, event count {}", buffer.size());
                     List<LogItem> events = buffer;
                     producerFutures.add(sendEvents(events));
@@ -171,7 +171,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
             counter = new SinkCounter(getName());
         }
         batchSize = context.getInteger(BATCH_SIZE, DEFAULT_BATCH_SIZE);
-        bufferSizeInBytes = context.getLong(BUFFER_SIZE_IN_BYTES, DEFAULT_BUFFER_SIZE_IN_BYTES);
+        bufferBytes = context.getLong(BUFFER_BYTES, DEFAULT_BUFFER_BYTES);
         maxBufferTime = context.getInteger(MAX_BUFFER_TIME, 3000);
         maxRetry = context.getInteger(MAX_RETRY, DEFAULT_MAX_RETRY);
         int cores = Runtime.getRuntime().availableProcessors();
