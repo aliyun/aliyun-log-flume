@@ -3,13 +3,11 @@ package com.aliyun.loghub.flume.sink;
 import com.aliyun.loghub.flume.Validate;
 import com.aliyun.loghub.flume.source.DelimitedTextEventDeserializer;
 import com.aliyun.openservices.log.Client;
+import com.aliyun.openservices.log.common.LogContent;
+import com.aliyun.openservices.log.common.LogItem;
 import com.aliyun.openservices.log.util.NetworkUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flume.Channel;
-import org.apache.flume.Context;
-import org.apache.flume.Event;
-import org.apache.flume.EventDeliveryException;
-import org.apache.flume.Transaction;
+import org.apache.flume.*;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.instrumentation.SinkCounter;
 import org.apache.flume.sink.AbstractSink;
@@ -18,31 +16,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_ID_KEY;
-import static com.aliyun.loghub.flume.Constants.ACCESS_KEY_SECRET_KEY;
-import static com.aliyun.loghub.flume.Constants.BATCH_SIZE;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_BATCH_SIZE;
-import static com.aliyun.loghub.flume.Constants.DEFAULT_MAX_RETRY;
-import static com.aliyun.loghub.flume.Constants.ENDPOINT_KEY;
-import static com.aliyun.loghub.flume.Constants.LOGSTORE_KEY;
-import static com.aliyun.loghub.flume.Constants.LOG_CONNECTOR_USER_AGENT;
-import static com.aliyun.loghub.flume.Constants.LOG_USER_AGENT;
-import static com.aliyun.loghub.flume.Constants.MAX_BUFFER_SIZE;
-import static com.aliyun.loghub.flume.Constants.MAX_RETRY;
-import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
-import static com.aliyun.loghub.flume.Constants.SERIALIZER;
+import static com.aliyun.loghub.flume.Constants.*;
 
 public class LoghubSink extends AbstractSink implements Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(LoghubSink.class);
 
     private int batchSize;
-    private int bufferSize;
+    private long logGroupSize;
     private int maxRetry;
     private int concurrency;
     private long maxBufferTime;
@@ -50,7 +32,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     private String logstore;
     private String source;
     private EventSerializer serializer;
-    private List<Future<Boolean>> producerFutures = new ArrayList<>();
+    private final List<Future<Boolean>> producerFutures = new ArrayList<>();
     private ThreadPoolExecutor executor;
     private Client client;
     private SinkCounter counter;
@@ -69,13 +51,27 @@ public class LoghubSink extends AbstractSink implements Configurable {
         LOG.info("Loghub Sink {} started.", getName());
     }
 
+    private static long getLogItemSize(LogItem item) {
+        long size = 0;
+        for (LogContent logContent : item.mContents) {
+            if (logContent.mKey != null) {
+                size += logContent.mKey.length();
+            }
+            if (logContent.mValue != null) {
+                size += logContent.mValue.length();
+            }
+        }
+        return size;
+    }
+
     @Override
     public Status process() throws EventDeliveryException {
         Channel channel = getChannel();
         Transaction transaction = null;
         long earliestEventTime = -1;
         Status result = Status.READY;
-        List<Event> buffer = new ArrayList<>(bufferSize);
+        List<LogItem> buffer = new ArrayList<>();
+        long totalBytes = 0;
         try {
             long processedEvents = 0;
             transaction = channel.getTransaction();
@@ -93,17 +89,31 @@ public class LoghubSink extends AbstractSink implements Configurable {
                     break;
                 }
                 counter.incrementEventDrainAttemptCount();
-                buffer.add(event);
+                LogItem logItem;
+                try {
+                    logItem = serializer.serialize(event);
+                } catch (Exception ex) {
+                    LOG.error("Failed to serialize event to log", ex);
+                    continue;
+                }
+                long logItemSize = getLogItemSize(logItem);
+                if (logItemSize >= MAX_LOG_GROUP_SIZE) {
+                    LOG.error("Event is too large, size {}", logItemSize);
+                    continue;
+                }
                 if (earliestEventTime < 0) {
                     earliestEventTime = System.currentTimeMillis();
                 }
-                if (shouldFlush(buffer.size(), earliestEventTime)) {
+                if (totalBytes + logItemSize > logGroupSize || System.currentTimeMillis() - earliestEventTime >= maxBufferTime) {
                     LOG.debug("Flushing events to Log service, event count {}", buffer.size());
-                    List<Event> events = buffer;
+                    List<LogItem> events = buffer;
                     producerFutures.add(sendEvents(events));
-                    buffer = new ArrayList<>(bufferSize);
+                    buffer = new ArrayList<>();
                     earliestEventTime = -1;
+                    totalBytes = 0;
                 }
+                buffer.add(logItem);
+                totalBytes += logItemSize;
             }
             if (!buffer.isEmpty()) {
                 producerFutures.add(sendEvents(buffer));
@@ -134,15 +144,8 @@ public class LoghubSink extends AbstractSink implements Configurable {
         return result;
     }
 
-    private Future<Boolean> sendEvents(List<Event> events) {
-        return executor.submit(new EventHandler(client, project, logstore, source, events, serializer, maxRetry));
-    }
-
-    private boolean shouldFlush(int count, long earliestEventTime) {
-        if (count >= bufferSize) {
-            return true;
-        }
-        return System.currentTimeMillis() - earliestEventTime >= maxBufferTime;
+    private Future<Boolean> sendEvents(List<LogItem> events) {
+        return executor.submit(new EventHandler(client, project, logstore, source, events, maxRetry));
     }
 
     @Override
@@ -168,8 +171,8 @@ public class LoghubSink extends AbstractSink implements Configurable {
             counter = new SinkCounter(getName());
         }
         batchSize = context.getInteger(BATCH_SIZE, DEFAULT_BATCH_SIZE);
-        bufferSize = context.getInteger(MAX_BUFFER_SIZE, 1000);
-        maxBufferTime = context.getInteger("maxBufferTime", 10000);
+        logGroupSize = context.getLong(LOG_GROUP_SIZE, DEFAULT_LOG_GROUP_SIZE);
+        maxBufferTime = context.getInteger("maxBufferTime", 3000);
         maxRetry = context.getInteger(MAX_RETRY, DEFAULT_MAX_RETRY);
         int cores = Runtime.getRuntime().availableProcessors();
         concurrency = context.getInteger("concurrency", cores);
