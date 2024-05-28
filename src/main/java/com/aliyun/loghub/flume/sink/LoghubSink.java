@@ -52,7 +52,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
     }
 
     private static long getLogItemSize(LogItem item) {
-        long size = 0;
+        long size = 4 + item.mContents.size() * 2L;
         for (LogContent logContent : item.mContents) {
             if (logContent.mKey != null) {
                 size += logContent.mKey.length();
