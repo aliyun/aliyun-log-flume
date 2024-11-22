@@ -34,7 +34,7 @@ public class Constants {
     public static final String FETCH_IN_ORDER = "fetchInOrder";
     public static final boolean DEFAULT_FETCH_IN_ORDER = false;
     public static final String BATCH_SIZE = "batchSize";
-    public static final int DEFAULT_BATCH_SIZE = 200;
+    public static final int DEFAULT_BATCH_SIZE = 1000;
     public static final String BUFFER_BYTES = "bufferBytes";
     public static final long DEFAULT_BUFFER_BYTES = 2 * 1024 * 1024; // 2MB
     public static final long MAX_LOG_GROUP_BYTES = 10 * 1024 * 1024; // 10MB
