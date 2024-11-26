@@ -32,7 +32,6 @@ public class LoghubSink extends AbstractSink implements Configurable {
     private String logstore;
     private String source;
     private EventSerializer serializer;
-    private final List<Future<Boolean>> producerFutures = new ArrayList<>();
     private ThreadPoolExecutor executor;
     private Client client;
     private SinkCounter counter;
@@ -71,9 +70,10 @@ public class LoghubSink extends AbstractSink implements Configurable {
         long earliestEventTime = -1;
         Status result = Status.READY;
         List<LogItem> buffer = new ArrayList<>();
+        List<Future<Boolean>> producerFutures = new ArrayList<>();
         long totalBytes = 0;
+        long processedEvents = 0;
         try {
-            long processedEvents = 0;
             transaction = channel.getTransaction();
             transaction.begin();
             for (; processedEvents < batchSize; processedEvents++) {
@@ -120,6 +120,7 @@ public class LoghubSink extends AbstractSink implements Configurable {
             }
             if (processedEvents > 0) {
                 for (Future<Boolean> future : producerFutures) {
+                    // throw exception here if failed to send events
                     future.get();
                 }
                 producerFutures.clear();
