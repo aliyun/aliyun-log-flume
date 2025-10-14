@@ -43,6 +43,7 @@ import static com.aliyun.loghub.flume.Constants.LOG_USER_AGENT;
 import static com.aliyun.loghub.flume.Constants.MAX_RETRY;
 import static com.aliyun.loghub.flume.Constants.PROJECT_KEY;
 import static com.aliyun.loghub.flume.Constants.QUERY;
+import static com.aliyun.loghub.flume.Constants.PROCESSOR;
 import static com.google.common.base.Preconditions.checkArgument;
 
 
@@ -110,6 +111,10 @@ public class LoghubSource extends AbstractSource implements
         String query = context.getString(QUERY);
         if (!StringUtils.isBlank(query)) {
             config.setQuery(query);
+        }
+        String processor = context.getString(PROCESSOR);
+        if (!StringUtils.isBlank(processor)) {
+            config.setProcessor(processor);
         }
         config.setHeartBeatIntervalMillis(heartbeatIntervalMs);
         config.setConsumeInOrder(fetchInOrder);
