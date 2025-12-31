@@ -15,6 +15,7 @@ public class Constants {
     public static final String CONSUME_POSITION_BEGIN = "begin";
     public static final String CONSUME_POSITION_END = "end";
     public static final String QUERY = "query";
+    public static final String PROCESSOR = "processor";
     public static final String CONSUME_POSITION_TIMESTAMP = "timestamp";
     public static final String LOG_USER_AGENT = "userAgent";
     public static final String LOG_CONNECTOR_USER_AGENT = VersionInfoUtils.getDefaultUserAgent();

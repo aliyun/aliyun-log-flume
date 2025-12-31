@@ -78,4 +78,5 @@ aliyun-log-flume 为Loghub 实现了Sink和Source 插件。
 |tagAsField| deserializer为JSON时，是否将日志Tag作为字段，字段名称为__tag__:{tag名称}| false | N |
 |timeAsField| deserializer为JSON时，是否将日志时间作为一个字段，字段名称为__time__ | false | N |
 |useRecordTime| 是否使用日志的时间，用于Event header中指定时间戳，如果为false则使用系统时间| false| N |
-|query| 指定SLS SPL, 语法参考：https://help.aliyun.com/zh/sls/user-guide/spl-overview | | N |
+|query| 指定SLS SPL, 已废弃, 使用processor替代, 语法参考：https://help.aliyun.com/zh/sls/user-guide/spl-overview | | N |
+|processor| 指定SLS SPL消费处理器, 替代query, 语法参考：https://help.aliyun.com/zh/sls/data-consumption-processor | | N |
